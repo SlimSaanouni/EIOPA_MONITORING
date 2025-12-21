@@ -1,0 +1,20 @@
+# Dépendances pour le système de monitoring EIOPA
+# Python 3.8+
+
+# Traitement de données
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Lecture de fichiers Excel
+openpyxl>=3.1.0
+
+# Requêtes HTTP et parsing HTML
+requests>=2.31.0
+beautifulsoup4>=4.12.0
+
+# Optionnel : Visualisation (pour extensions futures)
+# matplotlib>=3.7.0
+# plotly>=5.18.0
+
+# Optionnel : Interface Streamlit (pour dashboard)
+# streamlit>=1.29.0
