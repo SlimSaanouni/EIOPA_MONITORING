@@ -7,7 +7,7 @@ from typing import Optional, Dict, List
 import pandas as pd
 import fnmatch
 
-from config import (
+from config.config import (
     EXPECTED_EXCEL_FILES, EXCEL_SHEET_RFR,
     TARGET_COUNTRY, TARGET_MATURITIES, PROCESSED_DIR
 )
@@ -199,14 +199,10 @@ class EIOPAProcessor:
             rate_value = df.loc[mask, country_column].iloc[0]
             rate_float = safe_float_conversion(rate_value)
             
-            if rate_float is not None:
-                # Les taux dans le fichier EIOPA sont en % (ex: 2.5 pour 2.5%)
-                # On les convertit en décimal (0.025)
-                rate_decimal = rate_float / 100
-                
-                if validate_rate(rate_decimal):
-                    rates[maturity] = rate_decimal
-                    logger.debug(f"Taux {maturity}Y: {rate_float}% ({rate_decimal:.6f})")
+            if rate_float is not None:                
+                if validate_rate(rate_float):
+                    rates[maturity] = rate_float
+                    logger.debug(f"Taux {maturity}Y: {rate_float}% ({rate_float:.6f})")
                 else:
                     logger.warning(f"Taux invalide pour maturité {maturity}Y: {rate_float}")
         

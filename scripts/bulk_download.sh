@@ -88,7 +88,7 @@ cat > /tmp/list_eiopa_dates.py << 'PYTHON_SCRIPT'
 import sys
 sys.path.insert(0, '.')
 
-from downloader import EIOPADownloader
+from src.downloader import EIOPADownloader
 from datetime import datetime
 import json
 

@@ -7,7 +7,7 @@ import pandas as pd
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
 
-from config import TARGET_COUNTRY, TARGET_MATURITIES
+from config.config import TARGET_COUNTRY, TARGET_MATURITIES
 from src.analyzer import EIOPAAnalyzer
 from src.downloader import EIOPADownloader
 from src.processor import EIOPAProcessor

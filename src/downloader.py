@@ -9,7 +9,7 @@ from datetime import datetime
 import requests
 from bs4 import BeautifulSoup
 
-from config import (
+from config.config import (
     EIOPA_RFR_URL, ZIP_DOWNLOAD_PATTERN,
     REQUEST_TIMEOUT, MAX_RETRIES, HEADERS, RAW_DIR
 )

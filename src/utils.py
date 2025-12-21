@@ -8,7 +8,7 @@ import re
 from typing import Optional, List, Dict
 import pandas as pd
 
-from config import (
+from config.config import (
     LOG_FORMAT, LOG_DATE_FORMAT, LOG_FILE,
     MIN_RATE, MAX_RATE, MIN_VA, MAX_VA
 )

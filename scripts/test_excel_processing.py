@@ -6,7 +6,7 @@ from pathlib import Path
 
 from src.downloader import EIOPADownloader
 from src.processor import EIOPAProcessor
-from config import EXPECTED_EXCEL_FILES, EXCEL_SHEET_RFR
+from config.config import EXPECTED_EXCEL_FILES, EXCEL_SHEET_RFR
 from src.utils import setup_logging
 
 logger = setup_logging()
