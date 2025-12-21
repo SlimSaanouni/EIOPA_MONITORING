@@ -10,10 +10,10 @@ import requests
 from bs4 import BeautifulSoup
 
 from config import (
-    EIOPA_RFR_URL, ZIP_PATTERN, ZIP_DOWNLOAD_PATTERN,
+    EIOPA_RFR_URL, ZIP_DOWNLOAD_PATTERN,
     REQUEST_TIMEOUT, MAX_RETRIES, HEADERS, RAW_DIR
 )
-from src.utils import setup_logging, parse_date_from_filename, format_date_eiopa
+from src.utils import setup_logging, parse_date_from_filename
 
 logger = setup_logging()
 
