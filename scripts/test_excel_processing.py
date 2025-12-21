@@ -4,10 +4,10 @@ Script de test pour valider le traitement des fichiers Excel EIOPA
 import sys
 from pathlib import Path
 
-from downloader import EIOPADownloader
-from processor import EIOPAProcessor
+from src.downloader import EIOPADownloader
+from src.processor import EIOPAProcessor
 from config import EXPECTED_EXCEL_FILES, EXCEL_SHEET_RFR
-from utils import setup_logging
+from src.utils import setup_logging
 
 logger = setup_logging()
 

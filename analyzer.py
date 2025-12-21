@@ -10,9 +10,9 @@ from config import (
     HISTORICAL_FILE, TARGET_MATURITIES, ALERT_THRESHOLD_MOM,
     ALERT_THRESHOLD_YTD
 )
-from utils import (
+from src.utils import (
     setup_logging, get_previous_month_date, get_year_start_date,
-    calculate_bps_change, format_bps, format_rate_pct, create_summary_dict
+    format_bps, format_rate_pct, create_summary_dict
 )
 
 logger = setup_logging()
@@ -367,8 +367,8 @@ class EIOPAAnalyzer:
 
 def main():
     """Test du module d'analyse"""
-    from downloader import EIOPADownloader
-    from processor import EIOPAProcessor
+    from src.downloader import EIOPADownloader
+    from src.processor import EIOPAProcessor
     
     # Télécharger et traiter
     downloader = EIOPADownloader()
@@ -396,17 +396,17 @@ def main():
     
     print("\n=== Analyse ===")
     print(f"Date: {analysis['reference_date'].strftime('%Y-%m-%d')}")
-    print(f"\nTaux actuels:")
+    print("\nTaux actuels:")
     for maturity in sorted(analysis['rates'].keys()):
         print(f"  {maturity}Y: {format_rate_pct(analysis['rates'][maturity])}")
     
     if analysis['changes_mom']:
-        print(f"\nVariations M/M:")
+        print("\nVariations M/M:")
         for maturity in sorted([k for k in analysis['changes_mom'].keys() if k != 'va']):
             print(f"  {maturity}Y: {format_bps(analysis['changes_mom'][maturity])}")
     
     if analysis['alerts']:
-        print(f"\nAlertes:")
+        print("\nAlertes:")
         for alert in analysis['alerts']:
             print(f"  {alert}")
 

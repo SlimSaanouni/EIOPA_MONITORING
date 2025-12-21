@@ -3,15 +3,14 @@ Script principal pour le monitoring mensuel EIOPA
 """
 import argparse
 from datetime import datetime
-from pathlib import Path
 import sys
 
-from config import DATA_DIR, LATEST_REPORT_FILE
-from downloader import EIOPADownloader
-from processor import EIOPAProcessor
+from config import LATEST_REPORT_FILE
+from src.downloader import EIOPADownloader
+from src.processor import EIOPAProcessor
 from analyzer import EIOPAAnalyzer
-from reporter import EIOPAReporter
-from utils import setup_logging
+from src.reporter import EIOPAReporter
+from src.utils import setup_logging
 
 logger = setup_logging()
 
@@ -70,7 +69,7 @@ def run_monthly_update(specific_date: datetime = None, force_redownload: bool = 
         # Analyser avec comparaisons
         analysis = analyzer.analyze(current_data)
         
-        logger.info(f"✅ Analyse complétée")
+        logger.info("✅ Analyse complétée")
         if analysis.get('previous_date'):
             logger.info(f"   - Comparaison M/M : {analysis['previous_date'].strftime('%Y-%m-%d')}")
         if analysis.get('ytd_date'):

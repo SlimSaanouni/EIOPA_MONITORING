@@ -6,14 +6,13 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
-from pathlib import Path
 
 from config import TARGET_COUNTRY, TARGET_MATURITIES
 from analyzer import EIOPAAnalyzer
-from downloader import EIOPADownloader
-from processor import EIOPAProcessor
-from reporter import EIOPAReporter
-from utils import format_rate_pct, format_bps
+from src.downloader import EIOPADownloader
+from src.processor import EIOPAProcessor
+from src.reporter import EIOPAReporter
+from src.utils import format_rate_pct
 
 # Configuration de la page
 st.set_page_config(

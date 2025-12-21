@@ -2,14 +2,13 @@
 Exemples d'utilisation avancée du système de monitoring EIOPA
 """
 import pandas as pd
-import numpy as np
 from datetime import datetime, timedelta
 from pathlib import Path
 
 from analyzer import EIOPAAnalyzer
-from downloader import EIOPADownloader
-from processor import EIOPAProcessor
-from utils import format_rate_pct, format_bps
+from src.downloader import EIOPADownloader
+from src.processor import EIOPAProcessor
+from src.utils import format_rate_pct, format_bps
 
 
 def example_1_basic_usage():
@@ -38,7 +37,7 @@ def example_1_basic_usage():
     
     # Afficher les résultats
     print(f"✅ Données extraites pour {data['reference_date'].strftime('%Y-%m-%d')}")
-    print(f"\nTaux EUR (France) :")
+    print("\nTaux EUR (France) :")
     for maturity, rate in sorted(data['rates'].items()):
         print(f"  {maturity:2d}Y : {format_rate_pct(rate)}")
     
@@ -141,7 +140,7 @@ def example_4_custom_alerts():
     latest = analyzer.historical_data.iloc[-1]
     previous = analyzer.historical_data.iloc[-2]
     
-    print(f"Comparaison :")
+    print("Comparaison :")
     print(f"  Actuel   : {latest['reference_date'].strftime('%Y-%m-%d')}")
     print(f"  Précédent : {previous['reference_date'].strftime('%Y-%m-%d')}")
     print()
@@ -191,7 +190,6 @@ def example_5_export_to_excel():
     output_file = Path("data/eiopa_export_avance.xlsx")
     
     try:
-        import openpyxl
         from openpyxl.styles import Font, PatternFill, Alignment
         
         with pd.ExcelWriter(output_file, engine='openpyxl') as writer:
