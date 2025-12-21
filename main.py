@@ -8,7 +8,7 @@ import sys
 from config import LATEST_REPORT_FILE
 from src.downloader import EIOPADownloader
 from src.processor import EIOPAProcessor
-from analyzer import EIOPAAnalyzer
+from src.analyzer import EIOPAAnalyzer
 from src.reporter import EIOPAReporter
 from src.utils import setup_logging
 
@@ -147,7 +147,7 @@ def list_available_files():
 
 def show_historical_stats():
     """Affiche des statistiques sur l'historique"""
-    from analyzer import EIOPAAnalyzer
+    from src.analyzer import EIOPAAnalyzer
     
     analyzer = EIOPAAnalyzer()
     

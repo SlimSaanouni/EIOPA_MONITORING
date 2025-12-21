@@ -13,7 +13,7 @@ from config import (
     EIOPA_RFR_URL, ZIP_PATTERN, ZIP_DOWNLOAD_PATTERN,
     REQUEST_TIMEOUT, MAX_RETRIES, HEADERS, RAW_DIR
 )
-from utils import setup_logging, parse_date_from_filename, format_date_eiopa
+from src.utils import setup_logging, parse_date_from_filename, format_date_eiopa
 
 logger = setup_logging()
 

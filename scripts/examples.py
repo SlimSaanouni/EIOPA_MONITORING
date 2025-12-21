@@ -5,7 +5,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from analyzer import EIOPAAnalyzer
+from src.analyzer import EIOPAAnalyzer
 from src.downloader import EIOPADownloader
 from src.processor import EIOPAProcessor
 from src.utils import format_rate_pct, format_bps

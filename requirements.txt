@@ -12,9 +12,9 @@ openpyxl>=3.1.0
 requests>=2.31.0
 beautifulsoup4>=4.12.0
 
-# Optionnel : Visualisation (pour extensions futures)
-# matplotlib>=3.7.0
-# plotly>=5.18.0
+# Visualisation (pour extensions futures)
+matplotlib>=3.7.0
+plotly>=5.18.0
 
-# Optionnel : Interface Streamlit (pour dashboard)
-# streamlit>=1.29.0
+# Interface Streamlit (pour dashboard)
+streamlit>=1.29.0

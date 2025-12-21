@@ -8,7 +8,7 @@ import plotly.graph_objects as go
 from datetime import datetime, timedelta
 
 from config import TARGET_COUNTRY, TARGET_MATURITIES
-from analyzer import EIOPAAnalyzer
+from src.analyzer import EIOPAAnalyzer
 from src.downloader import EIOPADownloader
 from src.processor import EIOPAProcessor
 from src.reporter import EIOPAReporter

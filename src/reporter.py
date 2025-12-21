@@ -6,7 +6,7 @@ from typing import Dict, Optional
 from datetime import datetime
 
 from config import LATEST_REPORT_FILE
-from utils import setup_logging, format_bps, format_rate_pct
+from src.utils import setup_logging, format_bps, format_rate_pct
 
 logger = setup_logging()
 
@@ -321,7 +321,7 @@ def main():
     """Test du module de reporting"""
     from downloader import EIOPADownloader
     from processor import EIOPAProcessor
-    from analyzer import EIOPAAnalyzer
+    from src.analyzer import EIOPAAnalyzer
     
     # Pipeline complet
     downloader = EIOPADownloader()
