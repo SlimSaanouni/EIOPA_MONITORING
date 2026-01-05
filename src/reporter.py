@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Dict, Optional
 from datetime import datetime
 
-from config.config import LATEST_REPORT_FILE
+from config import LATEST_REPORT_FILE
 from src.utils import setup_logging, format_bps, format_rate_pct
 
 logger = setup_logging()

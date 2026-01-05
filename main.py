@@ -5,7 +5,7 @@ import argparse
 from datetime import datetime
 import sys
 
-from config.config import LATEST_REPORT_FILE
+from config import LATEST_REPORT_FILE
 from src.downloader import EIOPADownloader
 from src.processor import EIOPAProcessor
 from src.analyzer import EIOPAAnalyzer

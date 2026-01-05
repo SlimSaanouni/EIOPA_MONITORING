@@ -9,7 +9,7 @@ from datetime import datetime
 import requests
 from bs4 import BeautifulSoup
 
-from config.config import (
+from config import (
     EIOPA_RFR_URL, ZIP_DOWNLOAD_PATTERN,
     REQUEST_TIMEOUT, MAX_RETRIES, HEADERS, RAW_DIR
 )
@@ -184,7 +184,7 @@ class EIOPADownloader:
                 if attempt < MAX_RETRIES - 1:
                     time.sleep(2 ** attempt)
                 else:
-                    logger.error(f"Échec du téléchargement après toutes les tentatives")
+                    logger.error("Échec du téléchargement après toutes les tentatives")
                     if output_path.exists():
                         output_path.unlink()  # Supprimer le fichier partiel
                     raise

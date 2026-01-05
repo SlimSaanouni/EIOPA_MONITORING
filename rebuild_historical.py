@@ -4,9 +4,9 @@ Script de reconstruction du fichier historical.csv
 """
 import pandas as pd
 
-from ..config.config import PROCESSED_DIR, HISTORICAL_FILE, TARGET_MATURITIES, TARGET_COUNTRY, EXCEL_SHEET_RFR
-from ..src.analyzer import EIOPAAnalyzer
-from ..src.utils import setup_logging, parse_date_from_filename
+from config import PROCESSED_DIR, HISTORICAL_FILE, TARGET_MATURITIES, TARGET_COUNTRY, EXCEL_SHEET_RFR
+from src.analyzer import EIOPAAnalyzer
+from src.utils import setup_logging, parse_date_from_filename
 
 logger = setup_logging()
 

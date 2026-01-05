@@ -6,7 +6,7 @@ from typing import Optional, Dict, List
 from datetime import datetime
 import pandas as pd
 
-from config.config import (
+from config import (
     HISTORICAL_FILE, TARGET_MATURITIES, ALERT_THRESHOLD_MOM,
     ALERT_THRESHOLD_YTD
 )

@@ -7,7 +7,7 @@ from typing import Optional, Dict, List
 import pandas as pd
 import fnmatch
 
-from config.config import (
+from config import (
     EXPECTED_EXCEL_FILES, EXCEL_SHEET_RFR,
     TARGET_COUNTRY, TARGET_MATURITIES, PROCESSED_DIR
 )
