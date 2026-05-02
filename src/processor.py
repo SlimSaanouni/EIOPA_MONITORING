@@ -8,7 +8,7 @@ from typing import Dict, List, Optional
 
 import pandas as pd
 
-from config import EXPECTED_EXCEL_FILES, EXCEL_SHEET_RFR, TARGET_COUNTRY, TARGET_MATURITIES, PROCESSED_DIR
+from config import EXPECTED_EXCEL_FILES, EXCEL_SHEET_RFR, EXTRACTS_DIR, TARGET_COUNTRY, TARGET_MATURITIES, PROCESSED_DIR
 from src.rfr_exporter import export_rfr_csv
 from src.utils import setup_logging, parse_date_from_filename, safe_float_conversion, validate_rate
 
@@ -52,7 +52,7 @@ class EIOPAProcessor:
     def extract_excel_from_zip(self, excel_filename: str) -> Optional[Path]:
         """Extrait le fichier Excel du ZIP vers PROCESSED_DIR."""
         try:
-            output_path = PROCESSED_DIR / Path(excel_filename).name
+            output_path = EXTRACTS_DIR / Path(excel_filename).name
             with zipfile.ZipFile(self.zip_path, "r") as zf:
                 with zf.open(excel_filename) as src, open(output_path, "wb") as dst:
                     dst.write(src.read())

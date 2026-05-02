@@ -242,96 +242,138 @@ def show_overview():
 
 
 def show_update_page():
-    """Page de mise à jour"""
+    """Page de mise à jour — liste les dates distantes et locales, télécharge la sélection."""
     st.header("🔄 Mise à jour des données")
-    
-    col1, col2 = st.columns([2, 1])
-    
-    with col1:
-        st.info("Télécharge et traite le dernier fichier disponible depuis l'EIOPA")
-    
-    with col2:
-        if st.button("▶️ Lancer la mise à jour", type="primary"):
-            run_update()
-
-
-def run_update():
-    """Exécute la mise à jour"""
+ 
+    # ------------------------------------------------------------------
+    # 1. Dates déjà traitées localement (fichiers NO_VA dans processed/)
+    # ------------------------------------------------------------------
+    from config import EXTRACTS_DIR
+    from src.utils import parse_date_from_filename
+ 
+    local_dates = set()
+    for f in EXTRACTS_DIR.glob("EIOPA_RFR_*_Term_Structures.xlsx"):
+        d = parse_date_from_filename(f.name)
+        if d:
+            local_dates.add(d.date())
+ 
+    # ------------------------------------------------------------------
+    # 2. Dates disponibles sur le site EIOPA
+    # ------------------------------------------------------------------
+    with st.spinner("Récupération des fichiers disponibles sur l'EIOPA..."):
+        try:
+            downloader = EIOPADownloader()
+            available_files = downloader.get_available_files()  # [(filename, url, date)]
+        except Exception as e:
+            st.error(f"❌ Impossible de contacter l'EIOPA : {e}")
+            return
+ 
+    if not available_files:
+        st.warning("⚠️ Aucun fichier trouvé sur le site EIOPA.")
+        return
+ 
+    # ------------------------------------------------------------------
+    # 3. Construction du tableau de statut
+    # ------------------------------------------------------------------
+    st.subheader("📋 Fichiers disponibles")
+ 
+    rows = []
+    for filename, url, file_date in available_files:
+        already_done = file_date.date() in local_dates
+        rows.append({
+            "_date":     file_date,
+            "_url":      url,
+            "_filename": filename,
+            "Date":      file_date.strftime("%d/%m/%Y"),
+            "Fichier":   filename,
+            "Statut":    "✅ Déjà traité" if already_done else "⬇️ À télécharger",
+        })
+ 
+    df_display = pd.DataFrame(rows)[["Date", "Fichier", "Statut"]]
+    st.dataframe(df_display, use_container_width=True, hide_index=True)
+ 
+    # ------------------------------------------------------------------
+    # 4. Sélection des dates à télécharger
+    # ------------------------------------------------------------------
+    downloadable = [r for r in rows if r["Statut"] == "⬇️ À télécharger"]
+ 
+    if not downloadable:
+        st.success("✅ Tous les fichiers disponibles ont déjà été traités.")
+        return
+ 
+    st.subheader("📥 Sélection")
+ 
+    date_options = {r["Date"]: r for r in downloadable}
+    selected_labels = st.multiselect(
+        "Dates à télécharger",
+        options=list(date_options.keys()),
+        default=list(date_options.keys())[:1],
+    )
+ 
+    if not selected_labels:
+        st.info("Sélectionnez au moins une date.")
+        return
+ 
+    if st.button(f"▶️ Lancer le téléchargement ({len(selected_labels)} fichier(s))", type="primary"):
+        selected_rows = [date_options[lbl] for lbl in selected_labels]
+        run_update(selected_rows)
+ 
+ 
+def run_update(selected_rows: list):
+    """Télécharge et traite les fichiers sélectionnés."""
+    total = len(selected_rows)
     progress_bar = st.progress(0)
     status = st.empty()
-    
-    try:
-        # Étape 1 : Téléchargement
-        status.text("📥 Téléchargement en cours...")
-        progress_bar.progress(25)
-        
-        downloader = EIOPADownloader()
-        zip_path = downloader.download_latest()
-        
-        if not zip_path:
-            st.error("❌ Échec du téléchargement")
-            return
-        
-        # Étape 2 : Traitement
-        status.text("⚙️ Traitement des données...")
-        progress_bar.progress(50)
-        
-        processor = EIOPAProcessor(zip_path)
-        current_data = processor.process()
-        
-        if not current_data:
-            st.error("❌ Échec du traitement")
-            return
-        
-        # Étape 3 : Analyse
-        status.text("📊 Analyse en cours...")
-        progress_bar.progress(75)
-        
-        analyzer = get_analyzer()
-        analyzer.add_to_historical(current_data)
-        analysis = analyzer.analyze(current_data)
-        
-        # Étape 4 : Génération rapports
-        status.text("📝 Génération des rapports...")
-        progress_bar.progress(90)
-        
-        reporter = EIOPAReporter()
-        reporter.generate_text_report(analysis)
-        
-        progress_bar.progress(100)
-        status.text("✅ Mise à jour terminée !")
-        
-        st.success(f"✅ Données mises à jour pour le {current_data['reference_date'].strftime('%d/%m/%Y')}")
-        
-        # Afficher les résultats
-        st.subheader("📊 Résultats")
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.write("**Taux extraits**")
-            for maturity, rate in sorted(current_data['rates'].items()):
-                st.write(f"- {maturity}Y : {format_rate_pct(rate)}")
-        
-        with col2:
-            if current_data.get('va'):
-                st.write("**Volatility Adjustment**")
-                st.write(f"VA : {format_rate_pct(current_data['va'])}")
-        
-        # Alertes
-        if analysis.get('alerts'):
-            st.warning("⚠️ **Alertes détectées**")
-            for alert in analysis['alerts']:
-                st.write(f"- {alert}")
-        
-        # Forcer le rechargement du cache
+    results = []
+ 
+    for i, row in enumerate(selected_rows):
+        label = row["Date"]
+        status.text(f"[{i+1}/{total}] Traitement de {label}...")
+ 
+        try:
+            # Téléchargement
+            downloader = EIOPADownloader()
+            zip_path = downloader.download_file(row["_url"], row["_filename"])
+            if not zip_path:
+                results.append((label, False, "Échec du téléchargement"))
+                continue
+ 
+            # Traitement
+            processor = EIOPAProcessor(zip_path)
+            current_data = processor.process()
+            if not current_data:
+                results.append((label, False, "Échec du traitement"))
+                continue
+ 
+            # Analyse et historique
+            analyzer = get_analyzer()
+            analyzer.add_to_historical(current_data)
+            analysis = analyzer.analyze(current_data)
+ 
+            # Rapport
+            reporter = EIOPAReporter()
+            reporter.generate_text_report(analysis)
+ 
+            results.append((label, True, f"{len(current_data['rates'])} taux extraits"))
+ 
+        except Exception as e:
+            results.append((label, False, str(e)))
+ 
+        progress_bar.progress((i + 1) / total)
+ 
+    progress_bar.empty()
+    status.empty()
+ 
+    # Résumé
+    st.subheader("📊 Résultats")
+    for label, success, message in results:
+        if success:
+            st.success(f"✅ {label} — {message}")
+        else:
+            st.error(f"❌ {label} — {message}")
+ 
+    if any(s for _, s, _ in results):
         st.cache_data.clear()
-        
-    except Exception as e:
-        st.error(f"❌ Erreur : {e}")
-    finally:
-        progress_bar.empty()
-        status.empty()
 
 
 def show_historical_page():
