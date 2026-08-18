@@ -1,8 +1,20 @@
 """
 Configuration centralisée pour le système de monitoring EIOPA
 """
+import os
 from pathlib import Path
 from datetime import datetime
+
+
+def _env_int(name: str, default: int) -> int:
+    """Lit un entier depuis une variable d'environnement, avec repli sur `default` si absente/invalide."""
+    raw = os.environ.get(name)
+    if raw is None:
+        return default
+    try:
+        return int(raw)
+    except ValueError:
+        return default
 
 # ==================== CHEMINS ====================
 BASE_DIR      = Path(__file__).parent
@@ -23,7 +35,7 @@ LATEST_REPORT_FILE = DATA_DIR / "latest_report.txt"
 HISTORICAL_DB   = DATA_DIR / "historical.db"           # source de vérité
 DB_SCHEMA_FILE  = BASE_DIR / "src" / "schema.sql"
 DB_BACKUP_DIR   = DATA_DIR / "db_backups"
-DB_BACKUP_KEEP  = 14                                    # nombre de jours distincts conservés (1 backup/jour max)
+DB_BACKUP_KEEP  = _env_int("EIOPA_DB_BACKUP_KEEP", 14)  # nombre de jours distincts conservés (1 backup/jour max)
 
 DB_BACKUP_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -43,8 +55,8 @@ TARGET_COUNTRY    = "FR"
 TARGET_MATURITIES = [1, 5, 10, 20, 30]
 
 # ==================== RÉSEAU ====================
-REQUEST_TIMEOUT = 30
-MAX_RETRIES     = 3
+REQUEST_TIMEOUT = _env_int("EIOPA_REQUEST_TIMEOUT", 30)   # secondes
+MAX_RETRIES     = _env_int("EIOPA_MAX_RETRIES", 3)
 HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -62,8 +74,11 @@ LOG_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 LOG_FILE        = LOG_DIR / f"eiopa_monitoring_{datetime.now().strftime('%Y%m')}.log"
 
 # ==================== ANALYSE ====================
-ALERT_THRESHOLD_MOM = 50   # bps
-ALERT_THRESHOLD_YTD = 100  # bps
+# Surchargeables par variable d'environnement (ex: EIOPA_ALERT_THRESHOLD_MOM=75)
+# pour permettre à une autre équipe déployant sa propre instance d'ajuster
+# les seuils sans toucher au code.
+ALERT_THRESHOLD_MOM = _env_int("EIOPA_ALERT_THRESHOLD_MOM", 50)   # bps
+ALERT_THRESHOLD_YTD = _env_int("EIOPA_ALERT_THRESHOLD_YTD", 100)  # bps
 BPS_CONVERSION      = 10000
 
 # ==================== VALIDATION ====================

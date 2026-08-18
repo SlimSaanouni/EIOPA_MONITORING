@@ -131,14 +131,18 @@ Down = ROUND(base − MAX(0.00, shock_down × |base|), 5)
 
 ## Configuration (`config.py`)
 
-| Paramètre | Défaut | Description |
-|---|---|---|
-| `TARGET_COUNTRY` | `"FR"` | Pays à extraire (`"DE"`, `"IT"`, etc.) |
-| `TARGET_MATURITIES` | `[1, 5, 10, 20, 30]` | Maturités suivies pour les comparaisons M/M et YTD |
-| `ALERT_THRESHOLD_MOM` | `50` | Seuil d'alerte variation M/M (bps) |
-| `ALERT_THRESHOLD_YTD` | `100` | Seuil d'alerte variation YTD (bps) |
-| `HISTORICAL_DB` | `data/historical.db` | Base SQLite (source de vérité) |
-| `DB_BACKUP_KEEP` | `5` | Nombre de sauvegardes locales conservées avant chaque écriture |
+| Paramètre | Défaut | Variable d'environnement | Description |
+|---|---|---|---|
+| `TARGET_COUNTRY` | `"FR"` | — | Pays à extraire (`"DE"`, `"IT"`, etc.) — non surchargeable, voir "Points d'attention" |
+| `TARGET_MATURITIES` | `[1, 5, 10, 20, 30]` | — | Maturités suivies pour les comparaisons M/M et YTD |
+| `ALERT_THRESHOLD_MOM` | `50` | `EIOPA_ALERT_THRESHOLD_MOM` | Seuil d'alerte variation M/M (bps) |
+| `ALERT_THRESHOLD_YTD` | `100` | `EIOPA_ALERT_THRESHOLD_YTD` | Seuil d'alerte variation YTD (bps) |
+| `REQUEST_TIMEOUT` | `30` | `EIOPA_REQUEST_TIMEOUT` | Timeout réseau (secondes) |
+| `MAX_RETRIES` | `3` | `EIOPA_MAX_RETRIES` | Tentatives avant échec sur téléchargement/scraping |
+| `HISTORICAL_DB` | `data/historical.db` | — | Base SQLite (source de vérité) |
+| `DB_BACKUP_KEEP` | `14` | `EIOPA_DB_BACKUP_KEEP` | Nombre de jours distincts de sauvegarde conservés (1 backup/jour max) |
+
+Les paramètres surchargeables par variable d'environnement le sont pour permettre à une autre équipe déployant sa propre instance d'ajuster ces valeurs sans toucher au code (ex. `EIOPA_ALERT_THRESHOLD_MOM=75 streamlit run app.py`). Une valeur invalide (non numérique) retombe silencieusement sur le défaut.
 
 ---
 
