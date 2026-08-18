@@ -144,7 +144,9 @@ st.markdown("""
     }
 
     /* Logo SSA Analytics */
-    .eiopa-logo-hero { height: 72px; width: 72px; flex-shrink: 0; }
+    /* Logo réel ~2.34:1 (large et bas) depuis son viewBox recentré — largeur
+       calée sur ce ratio pour ne pas l'écraser dans une boîte carrée. */
+    .eiopa-logo-hero { height: 72px; width: 168px; flex-shrink: 0; }
     .eiopa-logo-hero svg { height: 100%; width: 100%; display: block; }
 
     .eiopa-brand-credit {
@@ -153,7 +155,7 @@ st.markdown("""
         gap: 10px;
         opacity: 0.85;
     }
-    .eiopa-brand-credit .eiopa-logo-footer { height: 32px; width: 32px; flex-shrink: 0; }
+    .eiopa-brand-credit .eiopa-logo-footer { height: 32px; width: 75px; flex-shrink: 0; }
     .eiopa-brand-credit .eiopa-logo-footer svg { height: 100%; width: 100%; display: block; }
     .eiopa-brand-credit span { font-size: 0.78rem; color: var(--ink-secondary); }
 
@@ -328,19 +330,21 @@ def main():
         subtitle = f"Solvency II · Taux sans risque EIOPA · Dernière clôture : {latest}"
     else:
         subtitle = "Solvency II · Taux sans risque EIOPA"
-    render_hero("EIOPA Risk-Free Rates Monitoring", subtitle)
 
-    # Sidebar
+    # Navigation native (remplace le radio du sidebar par les onglets/pages
+    # gérés par Streamlit lui-même — état actif visible, icônes dédiées,
+    # URL par page).
+    pg = st.navigation([
+        st.Page(show_overview, title="Vue d'ensemble", icon="📈", url_path="vue-d-ensemble", default=True),
+        st.Page(show_update_page, title="Mise à jour", icon="🔄", url_path="mise-a-jour"),
+        st.Page(show_historical_page, title="Historique", icon="📜", url_path="historique"),
+        st.Page(show_analysis_page, title="Analyse", icon="📊", url_path="analyse"),
+        st.Page(show_export_page, title="Export", icon="📤", url_path="export"),
+    ])
+
     with st.sidebar:
-        st.header("⚙️ Configuration")
-        
-        # Action à effectuer
-        action = st.radio(
-            "Action",
-            ["📈 Vue d'ensemble", "🔄 Mise à jour", "📜 Historique", "📊 Analyse", "📤 Export"]
-        )
-        
         st.markdown("---")
+        st.caption("⚙️ Configuration")
         st.markdown(f"**Pays surveillé** : {TARGET_COUNTRY}")
         st.markdown(f"**Maturités** : {', '.join(map(str, TARGET_MATURITIES))}Y")
 
@@ -353,25 +357,8 @@ def main():
         st.markdown("---")
         render_brand_credit()
 
-    # Vue d'ensemble
-    if action == "📈 Vue d'ensemble":
-        show_overview()
-    
-    # Mise à jour
-    elif action == "🔄 Mise à jour":
-        show_update_page()
-    
-    # Historique
-    elif action == "📜 Historique":
-        show_historical_page()
-    
-    # Analyse
-    elif action == "📊 Analyse":
-        show_analysis_page()
-
-    # Export
-    elif action == "📤 Export":
-        show_export_page()
+    render_hero("EIOPA Risk-Free Rates Monitoring", subtitle)
+    pg.run()
 
 
 def show_overview():
