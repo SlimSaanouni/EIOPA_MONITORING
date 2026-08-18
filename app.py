@@ -78,24 +78,28 @@ st.markdown("""
         }
     }
 
-    /* Bandeau hero */
+    /* Bandeau hero — surface neutre + liseré d'accent, pas de fond bleu plein
+       (trop tranché sur fond sombre) */
     .eiopa-hero {
-        background: linear-gradient(135deg, var(--accent) 0%, #184f95 100%);
+        background: var(--surface-card);
+        border: 1px solid var(--border);
+        border-left: 5px solid var(--accent);
         border-radius: 14px;
-        padding: 26px 30px;
+        padding: 22px 28px;
         margin-bottom: 1.75rem;
-        color: #ffffff;
+        color: var(--ink-primary);
     }
     .eiopa-hero .eiopa-hero-title {
         margin: 0;
         font-size: 1.55rem;
         font-weight: 700;
         letter-spacing: -0.01em;
+        color: var(--ink-primary);
     }
     .eiopa-hero .eiopa-hero-sub {
         margin: 6px 0 0;
         font-size: 0.92rem;
-        opacity: 0.88;
+        color: var(--ink-secondary);
     }
 
     /* Stat tiles */
@@ -140,16 +144,16 @@ st.markdown("""
     }
 
     /* Logo SSA Analytics */
-    .eiopa-logo-hero { height: 34px; width: 34px; flex-shrink: 0; }
+    .eiopa-logo-hero { height: 72px; width: 72px; flex-shrink: 0; }
     .eiopa-logo-hero svg { height: 100%; width: 100%; display: block; }
 
     .eiopa-brand-credit {
         display: flex;
         align-items: center;
-        gap: 8px;
-        opacity: 0.75;
+        gap: 10px;
+        opacity: 0.85;
     }
-    .eiopa-brand-credit .eiopa-logo-footer { height: 20px; width: 20px; flex-shrink: 0; }
+    .eiopa-brand-credit .eiopa-logo-footer { height: 32px; width: 32px; flex-shrink: 0; }
     .eiopa-brand-credit .eiopa-logo-footer svg { height: 100%; width: 100%; display: block; }
     .eiopa-brand-credit span { font-size: 0.78rem; color: var(--ink-secondary); }
 
@@ -167,12 +171,13 @@ st.markdown("""
 def render_hero(title: str, subtitle: str = ""):
     """Bandeau d'en-tête de marque, affiché une fois en haut du dashboard.
 
-    Fond bleu fixe (dégradé), donc toujours le logo à traits blancs, peu
-    importe le mode clair/sombre actif — pas besoin de bascule ici.
+    Surface neutre (adapte au mode clair/sombre), donc le logo bascule lui
+    aussi entre ses deux variantes selon le mode actif.
     """
     st.markdown(f"""
-    <div class="eiopa-hero" style="display:flex; align-items:center; gap:16px;">
-        <div class="eiopa-logo-hero">{LOGO_DARK}</div>
+    <div class="eiopa-hero" style="display:flex; align-items:center; gap:20px;">
+        <div class="eiopa-logo-hero eiopa-logo-light-only">{LOGO_LIGHT}</div>
+        <div class="eiopa-logo-hero eiopa-logo-dark-only">{LOGO_DARK}</div>
         <div>
             <p class="eiopa-hero-title">{title}</p>
             {f'<p class="eiopa-hero-sub">{subtitle}</p>' if subtitle else ''}
@@ -323,7 +328,7 @@ def main():
         subtitle = f"Solvency II · Taux sans risque EIOPA · Dernière clôture : {latest}"
     else:
         subtitle = "Solvency II · Taux sans risque EIOPA"
-    render_hero("📊 EIOPA Risk-Free Rates Monitoring", subtitle)
+    render_hero("EIOPA Risk-Free Rates Monitoring", subtitle)
 
     # Sidebar
     with st.sidebar:
