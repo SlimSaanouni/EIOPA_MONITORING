@@ -23,6 +23,18 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# Instance hébergée (ex. Streamlit Community Cloud) : disque éphémère, donc
+# aucune écriture faite ici ne survit à un redémarrage/redeploy. La donnée
+# de production est ingérée en local puis poussée sur git — voir le README,
+# section "Déploiement". Ce flag se règle via les Secrets de l'app hébergée
+# (jamais commité), absent = False par défaut pour un usage local normal.
+# st.secrets lève une exception (pas juste une valeur manquante) tant qu'aucun
+# fichier secrets.toml n'existe du tout — normal en local, à absorber ici.
+try:
+    READONLY_DASHBOARD = st.secrets.get("READONLY_DASHBOARD", False)
+except Exception:
+    READONLY_DASHBOARD = False
+
 # CSS personnalisé
 st.markdown("""
 <style>
@@ -161,6 +173,12 @@ def main():
         st.markdown("---")
         st.markdown(f"**Pays surveillé** : {TARGET_COUNTRY}")
         st.markdown(f"**Maturités** : {', '.join(map(str, TARGET_MATURITIES))}Y")
+
+        st.markdown("---")
+        if READONLY_DASHBOARD:
+            st.caption("🔒 Instance hébergée — lecture seule")
+        else:
+            st.caption("💻 Instance locale — production")
     
     # Vue d'ensemble
     if action == "📈 Vue d'ensemble":
@@ -292,10 +310,21 @@ def show_update_page():
     st.dataframe(df_display, use_container_width=True, hide_index=True)
  
     # ------------------------------------------------------------------
-    # 4. Sélection des dates à télécharger
+    # 4. Sélection des dates à télécharger — désactivé sur instance hébergée :
+    #    toute ingestion faite ici serait perdue au prochain redémarrage.
     # ------------------------------------------------------------------
+    if READONLY_DASHBOARD:
+        st.warning(
+            "🔒 Cette instance est en lecture seule. L'ingestion de nouvelles "
+            "données se fait en local (`streamlit run app.py` ou `python "
+            "main.py`), puis `historical.db` est poussé sur git — voir le "
+            "README, section \"Déploiement\". Un téléchargement lancé ici "
+            "serait perdu au prochain redémarrage de l'instance."
+        )
+        return
+
     downloadable = [r for r in rows if r["Statut"] == "⬇️ À télécharger"]
- 
+
     if not downloadable:
         st.success("✅ Tous les fichiers disponibles ont déjà été traités.")
         return
