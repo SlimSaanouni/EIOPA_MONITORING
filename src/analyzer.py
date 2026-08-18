@@ -153,6 +153,14 @@ class EIOPAAnalyzer:
         finally:
             conn.close()
 
+    def get_ingestion_issues(self, country: str = TARGET_COUNTRY, limit: int = 20) -> List[Dict]:
+        """Runs d'ingestion PARTIAL/FAILED (jamais SUCCESS), les plus récents d'abord."""
+        conn = self._connect()
+        try:
+            return db.get_ingestion_issues(conn, country, limit)
+        finally:
+            conn.close()
+
     # ------------------------------------------------------------------
     # Séries temporelles
     # ------------------------------------------------------------------

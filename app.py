@@ -400,6 +400,12 @@ def show_overview():
 
     st.caption(f"📅 Dernière mise à jour : {latest_date.strftime('%d/%m/%Y')}")
 
+    issues = analyzer.get_ingestion_issues()
+    if issues:
+        dates = ", ".join(i["reference_date"] for i in issues[:5])
+        suffix = "…" if len(issues) > 5 else ""
+        st.warning(f"⚠️ {len(issues)} mois avec anomalie d'ingestion ({dates}{suffix}) — détail dans **📜 Historique**.")
+
     # Métriques principales — une par maturité suivie (config.TARGET_MATURITIES), plus VA.
     # Delta M/M : vert en hausse, rouge en baisse (demande explicite —
     # remplace le rendu neutre initial).
@@ -619,7 +625,16 @@ def show_historical_page():
     with col3:
         max_date = df['reference_date'].max()
         render_stat_tile("Dernière date", max_date.strftime('%d/%m/%Y'))
-    
+
+    # Anomalies d'ingestion (table ingestion_runs, statuts PARTIAL/FAILED)
+    analyzer = get_analyzer()
+    issues = analyzer.get_ingestion_issues()
+    if issues:
+        with st.expander(f"⚠️ {len(issues)} anomalie(s) d'ingestion", expanded=False):
+            issues_df = pd.DataFrame(issues)[["reference_date", "status", "source_file", "missing_maturities", "notes"]]
+            issues_df.columns = ["Date", "Statut", "Fichier source", "Maturités manquantes", "Notes"]
+            st.dataframe(issues_df, width='stretch', hide_index=True)
+
     # Sélection de la maturité
     st.subheader("📈 Évolution temporelle")
     

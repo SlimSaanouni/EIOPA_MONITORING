@@ -222,6 +222,21 @@ def get_dates(conn: sqlite3.Connection, country: str) -> List[str]:
     return [row["reference_date"] for row in rows]
 
 
+def get_ingestion_issues(conn: sqlite3.Connection, country: str, limit: int = 20) -> List[Dict]:
+    """Runs d'ingestion non-SUCCESS (PARTIAL/FAILED), les plus récents d'abord."""
+    rows = conn.execute(
+        """
+        SELECT reference_date, source_file, ingested_at, status, missing_maturities, notes
+        FROM ingestion_runs
+        WHERE country = ? AND status != 'SUCCESS'
+        ORDER BY ingested_at DESC
+        LIMIT ?
+        """,
+        (country, limit),
+    ).fetchall()
+    return [dict(row) for row in rows]
+
+
 def get_time_series(
     conn: sqlite3.Connection,
     country: str,
