@@ -38,6 +38,13 @@ data/*.xls
 
 # NE PAS exclure l'historique (important à versionner)
 # data/historical.csv  # Commenté pour garder l'historique
+# data/historical.db   # Idem : c'est la source de vérité, à versionner
+
+# Base SQLite : fichiers annexes WAL et sauvegardes locales (regénérables, pas la donnée elle-même)
+data/historical.db-wal
+data/historical.db-shm
+data/db_backups/
+data/historical_from_db.csv
 
 # Logs
 logs/*.log

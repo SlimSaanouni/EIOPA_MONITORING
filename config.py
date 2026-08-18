@@ -16,8 +16,16 @@ for directory in [DATA_DIR, RAW_DIR, PROCESSED_DIR, LOG_DIR]:
     directory.mkdir(parents=True, exist_ok=True)
 
 # ==================== FICHIERS ====================
-HISTORICAL_FILE    = DATA_DIR / "historical.csv"
+HISTORICAL_FILE    = DATA_DIR / "historical.csv"      # export lisible régénéré depuis la base — plus la source de vérité
 LATEST_REPORT_FILE = DATA_DIR / "latest_report.txt"
+
+# ==================== BASE DE DONNÉES ====================
+HISTORICAL_DB   = DATA_DIR / "historical.db"           # source de vérité
+DB_SCHEMA_FILE  = BASE_DIR / "src" / "schema.sql"
+DB_BACKUP_DIR   = DATA_DIR / "db_backups"
+DB_BACKUP_KEEP  = 5                                     # nombre de backups conservés (rotation)
+
+DB_BACKUP_DIR.mkdir(parents=True, exist_ok=True)
 
 # ==================== EIOPA ====================
 EIOPA_BASE_URL    = "https://www.eiopa.europa.eu"
