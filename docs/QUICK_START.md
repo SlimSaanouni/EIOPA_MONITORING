@@ -13,10 +13,11 @@ pip install -r requirements.txt
 ### 2. Lancer le dashboard
 
 ```bash
-streamlit run app.py
+./run.sh      # Linux / Mac
+run.bat        # Windows
 ```
 
-→ Ouvre `http://localhost:8501` dans le navigateur.
+→ Ouvre `http://localhost:8501` dans le navigateur. `run.sh`/`run.bat` appellent directement `venv/bin/streamlit`, sans dépendre du `PATH` — évite de lancer l'app par erreur avec un autre Streamlit installé ailleurs sur la machine.
 
 ### 3. Ingérer les données
 

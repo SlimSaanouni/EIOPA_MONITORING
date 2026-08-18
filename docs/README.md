@@ -69,7 +69,15 @@ Couvre la logique la plus critique : formule des chocs IR, contraintes du schém
 ### Dashboard interactif (recommandé)
 
 ```bash
-streamlit run app.py
+./run.sh            # Linux / Mac
+run.bat              # Windows
+```
+
+Lance directement `venv/bin/streamlit` (ou `venv\Scripts\streamlit.exe`), sans dépendre du `PATH` ni d'une activation manuelle du venv — évite qu'un autre Streamlit installé ailleurs sur la machine soit utilisé par erreur (l'app vérifie de toute façon sa version au démarrage et refuse de se lancer avec un Streamlit trop ancien, avec un message explicite plutôt qu'un plantage).
+
+Équivalent manuel :
+```bash
+source venv/bin/activate && streamlit run app.py
 ```
 
 Le dashboard permet de :
@@ -205,6 +213,8 @@ La page "📤 Export" reste disponible sur l'instance hébergée : elle ne fait 
 | `Aucune courbe ... en base` lors d'un export | Mois jamais ingéré | Lancer `main.py --date <date>` (ou la page "Mise à jour") avant d'exporter. |
 | `Module openpyxl introuvable` | Dépendance manquante | `pip install openpyxl` |
 | Chocs Up/Down à 0 dans un CSV | Formules Excel non calculées côté EIOPA | Normal : les chocs sont recalculés directement en Python depuis l'onglet `Shocks`, jamais lus depuis les onglets de choc pré-calculés d'EIOPA (peu fiables). |
+| `Streamlit X.Y.Z détecté — cette application nécessite ≥1.52.0` | Mauvais interpréteur utilisé (venv non activé, ou un autre Streamlit installé ailleurs sur la machine passe avant dans le `PATH`) | Utiliser `./run.sh` (ou `run.bat`), qui appelle directement `venv/bin/streamlit` sans passer par le `PATH`. Sinon, vérifier que `which streamlit` pointe vers `venv/bin/streamlit`. |
+| `TypeError: 'str' object cannot be interpreted as an integer` sur un `st.dataframe(...)`/`st.plotly_chart(...)` | Même cause que ci-dessus, mais sur une version d'app antérieure au garde-fou de version | Mettre à jour vers la dernière version du code (le garde-fou remplace ce plantage par un message explicite), et suivre la solution ci-dessus. |
 
 ---
 

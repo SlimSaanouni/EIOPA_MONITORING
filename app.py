@@ -19,6 +19,37 @@ from src.utils import format_rate_pct, setup_logging
 
 logger = setup_logging()
 
+# Garde-fou de version : l'app utilise des API Streamlit récentes
+# (st.navigation/st.Page, theme.light/theme.dark, width='stretch' en chaîne
+# plutôt qu'en pixels) absentes des versions antérieures à 1.52. Sans ce
+# contrôle, une mauvaise résolution d'interpréteur (venv non activé, Streamlit
+# installé ailleurs sur la machine) plante avec une TypeError obscure loin de
+# la vraie cause — voir requirements.txt pour le détail des API concernées.
+_MIN_STREAMLIT = (1, 52, 0)
+try:
+    _installed_streamlit = tuple(int(p) for p in st.__version__.split(".")[:3])
+except ValueError:
+    _installed_streamlit = None  # version non standard, on ne bloque pas sur un format imprévu
+
+if _installed_streamlit is not None and _installed_streamlit < _MIN_STREAMLIT:
+    st.set_page_config(page_title="EIOPA Monitoring Dashboard", page_icon="⚠️")
+    st.error(
+        f"**Streamlit {st.__version__} détecté — cette application nécessite "
+        f"≥{'.'.join(map(str, _MIN_STREAMLIT))}.**\n\n"
+        "Le `venv/` du projet a la bonne version. Vérifie que tu lances bien "
+        "l'app avec :\n"
+        "```\n"
+        "source venv/bin/activate && streamlit run app.py\n"
+        "```\n"
+        "ou directement (sans activer le venv) :\n"
+        "```\n"
+        "venv/bin/streamlit run app.py\n"
+        "```\n"
+        "`which streamlit` doit pointer vers `venv/bin/streamlit`, pas vers un "
+        "Streamlit installé ailleurs sur la machine. Voir aussi `./run.sh`."
+    )
+    st.stop()
+
 # Logo SSA Analytics — deux variantes (traits noirs / traits blancs), la même
 # icône. logo_white.svg pour les fonds sombres/colorés, logo.svg pour les
 # fonds clairs. Chargées une fois, inlinées en SVG pour rester stylables en
