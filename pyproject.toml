@@ -24,6 +24,7 @@ dev = ["pytest>=8.0.0,<9.0.0"]
 
 [project.scripts]
 eiopa-rfr = "eiopa_rfr.main:main"
+eiopa-rfr-app = "eiopa_rfr.app:launch"
 
 [tool.setuptools.packages.find]
 where = ["src"]
