@@ -53,6 +53,17 @@ pip install -r requirements.txt
 
 ---
 
+## Tests
+
+```bash
+pip install -r requirements-dev.txt
+pytest tests/ -v
+```
+
+Couvre la logique la plus critique : formule des chocs IR, contraintes du schéma SQLite, tolérances de date des comparaisons M/M et YTD, format des exports. Exécutés automatiquement sur chaque push/PR vers `main` (`.github/workflows/tests.yml`).
+
+---
+
 ## Utilisation
 
 ### Dashboard interactif (recommandé)

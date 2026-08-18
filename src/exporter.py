@@ -7,7 +7,7 @@ personne qui exporte : ce module ne fixe aucun défaut, voir la doc externe
 sur la convention à appliquer selon le consommateur cible.
 """
 from pathlib import Path
-from typing import Dict, List
+from typing import List
 
 import pandas as pd
 
