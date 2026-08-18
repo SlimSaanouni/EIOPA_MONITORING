@@ -92,3 +92,6 @@ tmp/
 # Fichiers de configuration locaux (si secrets)
 # config_local.py
 # .env
+
+# Secrets Streamlit (READONLY_DASHBOARD en local pour tester, jamais commité)
+.streamlit/secrets.toml
