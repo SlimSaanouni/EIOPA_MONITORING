@@ -11,7 +11,7 @@ from typing import Dict, List
 
 import pandas as pd
 
-from config import PROCESSED_DIR, TARGET_COUNTRY
+from config import HISTORICAL_DB, PROCESSED_DIR, TARGET_COUNTRY
 from src import db
 from src.utils import setup_logging
 
@@ -25,6 +25,7 @@ def export_curve_csv(
     va_type: str,
     country: str = TARGET_COUNTRY,
     output_dir: Path = PROCESSED_DIR,
+    db_path: Path = HISTORICAL_DB,
 ) -> Path:
     """
     Écrit RFR_[DATE]_[VA_TYPE].csv (colonnes Maturity,Base,Up,Down,
@@ -36,6 +37,8 @@ def export_curve_csv(
         va_type: 'NO_VA' ou 'WITH_VA'
         country: code pays (config.TARGET_COUNTRY par défaut)
         output_dir: dossier de destination
+        db_path: base à interroger (config.HISTORICAL_DB par défaut —
+            paramétrable pour les tests)
 
     Raises:
         ValueError: va_type invalide, ou aucune courbe en base pour cette
@@ -48,7 +51,7 @@ def export_curve_csv(
     date_str = ts.strftime("%Y-%m-%d")
     date_compact = ts.strftime("%Y%m%d")
 
-    conn = db.get_connection()
+    conn = db.get_connection(db_path)
     try:
         base = db.get_curve(conn, date_str, country, va_type, "BASE")
         up   = db.get_curve(conn, date_str, country, va_type, "UP")
@@ -79,9 +82,9 @@ def export_curve_csv(
     return output_path
 
 
-def available_export_dates(country: str = TARGET_COUNTRY) -> List[str]:
+def available_export_dates(country: str = TARGET_COUNTRY, db_path: Path = HISTORICAL_DB) -> List[str]:
     """Dates ('YYYY-MM-DD') disponibles en base pour l'export, triées décroissant."""
-    conn = db.get_connection()
+    conn = db.get_connection(db_path)
     try:
         dates = db.get_dates(conn, country)
     finally:

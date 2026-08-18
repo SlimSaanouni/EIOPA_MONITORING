@@ -238,7 +238,7 @@ def get_ingestion_issues(conn: sqlite3.Connection, country: str, limit: int = 20
         SELECT reference_date, source_file, ingested_at, status, missing_maturities, notes
         FROM ingestion_runs
         WHERE country = ? AND status != 'SUCCESS'
-        ORDER BY ingested_at DESC
+        ORDER BY ingested_at DESC, id DESC
         LIMIT ?
         """,
         (country, limit),
