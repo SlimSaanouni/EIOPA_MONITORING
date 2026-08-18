@@ -23,7 +23,7 @@ LATEST_REPORT_FILE = DATA_DIR / "latest_report.txt"
 HISTORICAL_DB   = DATA_DIR / "historical.db"           # source de vérité
 DB_SCHEMA_FILE  = BASE_DIR / "src" / "schema.sql"
 DB_BACKUP_DIR   = DATA_DIR / "db_backups"
-DB_BACKUP_KEEP  = 5                                     # nombre de backups conservés (rotation)
+DB_BACKUP_KEEP  = 14                                    # nombre de jours distincts conservés (1 backup/jour max)
 
 DB_BACKUP_DIR.mkdir(parents=True, exist_ok=True)
 

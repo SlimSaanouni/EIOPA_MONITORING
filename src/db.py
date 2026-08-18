@@ -43,12 +43,21 @@ def backup_database(db_path: Path = HISTORICAL_DB, keep: int = DB_BACKUP_KEEP) -
     """
     Copie la base vers DB_BACKUP_DIR avec un horodatage, puis supprime les
     plus anciens backups au-delà de `keep`. Ne fait rien si la base n'existe
-    pas encore (première initialisation).
+    pas encore (première initialisation), ni si un backup du jour existe déjà
+    — une session d'écriture copie l'intégralité du fichier (plusieurs Mo),
+    inutile de le refaire à chaque ingestion répétée dans la même journée ;
+    `keep` couvre alors `keep` jours distincts plutôt que `keep` écritures.
     """
     if not db_path.exists():
         return None
 
     DB_BACKUP_DIR.mkdir(parents=True, exist_ok=True)
+    today = datetime.now().strftime("%Y%m%d")
+    todays_backups = list(DB_BACKUP_DIR.glob(f"{db_path.stem}_{today}_*{db_path.suffix}"))
+    if todays_backups:
+        logger.debug(f"Backup du jour déjà présent, ignoré : {todays_backups[0]}")
+        return todays_backups[0]
+
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     backup_path = DB_BACKUP_DIR / f"{db_path.stem}_{timestamp}{db_path.suffix}"
     shutil.copy2(db_path, backup_path)
