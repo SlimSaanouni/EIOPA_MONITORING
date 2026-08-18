@@ -30,7 +30,7 @@ LOGO_DARK = (_ASSETS_DIR / "logo_white.svg").read_text()   # traits blancs — f
 # Configuration de la page
 st.set_page_config(
     page_title="EIOPA Monitoring Dashboard",
-    page_icon="📊",
+    page_icon=str(_ASSETS_DIR / "favicon.png"),
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -183,6 +183,17 @@ st.markdown("""
         .eiopa-logo-light-only { display: none; }
         .eiopa-logo-dark-only { display: block; }
     }
+
+    /* Écrans étroits (mobile/tablette) : hero empilé, logo réduit, tuiles
+       moins denses — le CSS custom n'avait jusqu'ici aucun point de rupture,
+       seul le thème clair/sombre était géré. */
+    @media (max-width: 640px) {
+        .eiopa-hero { flex-direction: column; align-items: flex-start !important; gap: 12px !important; padding: 18px 20px; }
+        .eiopa-logo-hero { height: 44px; width: 103px; }
+        .eiopa-hero-title { font-size: 1.25rem; }
+        .stat-tile { padding: 10px 12px; }
+        .stat-tile .stat-value { font-size: 1.25rem; }
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -194,9 +205,9 @@ def render_hero(title: str, subtitle: str = ""):
     aussi entre ses deux variantes selon le mode actif.
     """
     st.markdown(f"""
-    <div class="eiopa-hero" style="display:flex; align-items:center; gap:20px;">
-        <div class="eiopa-logo-hero eiopa-logo-light-only">{LOGO_LIGHT}</div>
-        <div class="eiopa-logo-hero eiopa-logo-dark-only">{LOGO_DARK}</div>
+    <div class="eiopa-hero" style="display:flex; align-items:center; gap:20px;" role="banner" aria-label="{title}">
+        <div class="eiopa-logo-hero eiopa-logo-light-only" aria-hidden="true">{LOGO_LIGHT}</div>
+        <div class="eiopa-logo-hero eiopa-logo-dark-only" aria-hidden="true">{LOGO_DARK}</div>
         <div>
             <p class="eiopa-hero-title">{title}</p>
             {f'<p class="eiopa-hero-sub">{subtitle}</p>' if subtitle else ''}
@@ -208,9 +219,9 @@ def render_hero(title: str, subtitle: str = ""):
 def render_brand_credit():
     """Crédit 'Propulsé par SSA Analytics' avec logo adapté au mode clair/sombre actif."""
     st.markdown(f"""
-    <div class="eiopa-brand-credit">
-        <div class="eiopa-logo-footer eiopa-logo-light-only">{LOGO_LIGHT}</div>
-        <div class="eiopa-logo-footer eiopa-logo-dark-only">{LOGO_DARK}</div>
+    <div class="eiopa-brand-credit" aria-label="Propulsé par SSA Analytics">
+        <div class="eiopa-logo-footer eiopa-logo-light-only" aria-hidden="true">{LOGO_LIGHT}</div>
+        <div class="eiopa-logo-footer eiopa-logo-dark-only" aria-hidden="true">{LOGO_DARK}</div>
         <span>Propulsé par SSA Analytics</span>
     </div>
     """, unsafe_allow_html=True)
@@ -222,8 +233,9 @@ def render_stat_tile(label: str, value: str, delta: str = "", delta_direction: s
     rendu de marque. delta_direction: 'up' (vert), 'down' (rouge), ou '' (neutre).
     """
     delta_class = f" {delta_direction}" if delta_direction in ("up", "down") else ""
+    aria_label = f"{label} : {value}" + (f", {delta}" if delta else "")
     st.markdown(f"""
-    <div class="stat-tile">
+    <div class="stat-tile" role="group" aria-label="{aria_label}">
         <p class="stat-label">{label}</p>
         <p class="stat-value">{value}</p>
         {f'<p class="stat-delta{delta_class}">{delta}</p>' if delta else ''}
@@ -425,7 +437,13 @@ def show_overview():
 
     with columns[-1]:
         va = latest_row['va'] * 100 if pd.notna(latest_row['va']) else None
-        render_stat_tile("VA", f"{va:.2f}%" if va is not None else "N/A")
+        va_delta, va_direction = "", ""
+        if va is not None and previous_row is not None and pd.notna(previous_row.get('va')):
+            va_change_bps = (latest_row['va'] - previous_row['va']) * 10000
+            va_direction = "up" if va_change_bps >= 0 else "down"
+            va_arrow = "▲" if va_change_bps >= 0 else "▼"
+            va_delta = f"{va_arrow} {va_change_bps:+.1f} bps (M/M)"
+        render_stat_tile("VA", f"{va:.2f}%" if va is not None else "N/A", va_delta, va_direction)
 
     # Courbe actuelle
     st.subheader("📈 Courbe des taux actuelle")
