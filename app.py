@@ -2,6 +2,8 @@
 Dashboard Streamlit pour le monitoring EIOPA
 Bonus : Interface interactive pour visualiser les taux et l'historique
 """
+from pathlib import Path
+
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
@@ -14,6 +16,14 @@ from src.exporter import available_export_dates, export_curve_csv
 from src.ingestion import ingest_zip
 from src.reporter import EIOPAReporter
 from src.utils import format_rate_pct
+
+# Logo SSA Analytics — deux variantes (traits noirs / traits blancs), la même
+# icône. logo_white.svg pour les fonds sombres/colorés, logo.svg pour les
+# fonds clairs. Chargées une fois, inlinées en SVG pour rester stylables en
+# CSS (voir .eiopa-logo-light/.eiopa-logo-dark plus bas).
+_ASSETS_DIR = Path(__file__).parent / "assets"
+LOGO_LIGHT = (_ASSETS_DIR / "logo.svg").read_text()        # traits noirs — fond clair
+LOGO_DARK = (_ASSETS_DIR / "logo_white.svg").read_text()   # traits blancs — fond sombre/coloré
 
 # Configuration de la page
 st.set_page_config(
@@ -128,16 +138,56 @@ st.markdown("""
     div[data-testid="stRadio"] label:hover {
         background-color: var(--border);
     }
+
+    /* Logo SSA Analytics */
+    .eiopa-logo-hero { height: 34px; width: 34px; flex-shrink: 0; }
+    .eiopa-logo-hero svg { height: 100%; width: 100%; display: block; }
+
+    .eiopa-brand-credit {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        opacity: 0.75;
+    }
+    .eiopa-brand-credit .eiopa-logo-footer { height: 20px; width: 20px; flex-shrink: 0; }
+    .eiopa-brand-credit .eiopa-logo-footer svg { height: 100%; width: 100%; display: block; }
+    .eiopa-brand-credit span { font-size: 0.78rem; color: var(--ink-secondary); }
+
+    /* Variante du logo affichée selon le mode — une seule des deux existe
+       dans le DOM à la fois visuellement, l'autre est masquée. */
+    .eiopa-logo-dark-only { display: none; }
+    @media (prefers-color-scheme: dark) {
+        .eiopa-logo-light-only { display: none; }
+        .eiopa-logo-dark-only { display: block; }
+    }
 </style>
 """, unsafe_allow_html=True)
 
 
 def render_hero(title: str, subtitle: str = ""):
-    """Bandeau d'en-tête de marque, affiché une fois en haut du dashboard."""
+    """Bandeau d'en-tête de marque, affiché une fois en haut du dashboard.
+
+    Fond bleu fixe (dégradé), donc toujours le logo à traits blancs, peu
+    importe le mode clair/sombre actif — pas besoin de bascule ici.
+    """
     st.markdown(f"""
-    <div class="eiopa-hero">
-        <p class="eiopa-hero-title">{title}</p>
-        {f'<p class="eiopa-hero-sub">{subtitle}</p>' if subtitle else ''}
+    <div class="eiopa-hero" style="display:flex; align-items:center; gap:16px;">
+        <div class="eiopa-logo-hero">{LOGO_DARK}</div>
+        <div>
+            <p class="eiopa-hero-title">{title}</p>
+            {f'<p class="eiopa-hero-sub">{subtitle}</p>' if subtitle else ''}
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+def render_brand_credit():
+    """Crédit 'Propulsé par SSA Analytics' avec logo adapté au mode clair/sombre actif."""
+    st.markdown(f"""
+    <div class="eiopa-brand-credit">
+        <div class="eiopa-logo-footer eiopa-logo-light-only">{LOGO_LIGHT}</div>
+        <div class="eiopa-logo-footer eiopa-logo-dark-only">{LOGO_DARK}</div>
+        <span>Propulsé par SSA Analytics</span>
     </div>
     """, unsafe_allow_html=True)
 
@@ -294,7 +344,10 @@ def main():
             st.caption("🔒 Instance hébergée — lecture seule")
         else:
             st.caption("💻 Instance locale — production")
-    
+
+        st.markdown("---")
+        render_brand_credit()
+
     # Vue d'ensemble
     if action == "📈 Vue d'ensemble":
         show_overview()
