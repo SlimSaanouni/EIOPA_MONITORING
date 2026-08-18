@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 from config import TARGET_COUNTRY, TARGET_MATURITIES
 from src.analyzer import EIOPAAnalyzer
 from src.downloader import EIOPADownloader
+from src.exporter import available_export_dates, export_curve_csv
 from src.ingestion import ingest_zip
 from src.reporter import EIOPAReporter
 from src.utils import format_rate_pct
@@ -154,7 +155,7 @@ def main():
         # Action à effectuer
         action = st.radio(
             "Action",
-            ["📈 Vue d'ensemble", "🔄 Mise à jour", "📜 Historique", "📊 Analyse"]
+            ["📈 Vue d'ensemble", "🔄 Mise à jour", "📜 Historique", "📊 Analyse", "📤 Export"]
         )
         
         st.markdown("---")
@@ -176,6 +177,10 @@ def main():
     # Analyse
     elif action == "📊 Analyse":
         show_analysis_page()
+
+    # Export
+    elif action == "📤 Export":
+        show_export_page()
 
 
 def show_overview():
@@ -502,6 +507,56 @@ def show_analysis_page():
     
     df_variations = pd.DataFrame(variations)
     st.dataframe(df_variations, use_container_width=True, hide_index=True)
+
+
+def show_export_page():
+    """Page d'export au format d'échange (Maturity,Base,Up,Down) pour ESG / Asset_PTF."""
+    st.header("📤 Export")
+    st.markdown(
+        "Génère les fichiers `RFR_[DATE]_[VA_TYPE].csv` (colonnes "
+        "`Maturity,Base,Up,Down`) consommés par les outils ESG et Asset_PTF."
+    )
+    st.info(
+        "Le choix NO_VA / WITH_VA à utiliser dépend de l'outil cible et de la "
+        "méthodologie retenue — voir la documentation externe à ce dashboard. "
+        "Cette page ne fixe aucun défaut."
+    )
+
+    dates = available_export_dates(TARGET_COUNTRY)
+    if not dates:
+        st.warning("⚠️ Aucune courbe en base. Effectuez d'abord une mise à jour.")
+        return
+
+    date_labels = {datetime.strptime(d, "%Y-%m-%d").strftime("%d/%m/%Y"): d for d in dates}
+    selected_label = st.selectbox("Date de clôture", list(date_labels.keys()))
+    selected_date = date_labels[selected_label]
+
+    va_type_map = {
+        "Sans VA (NO_VA)": ["NO_VA"],
+        "Avec VA (WITH_VA)": ["WITH_VA"],
+        "Les deux": ["NO_VA", "WITH_VA"],
+    }
+    va_choice = st.radio("Type de courbe", list(va_type_map.keys()), horizontal=True)
+
+    if st.button("▶️ Générer l'export", type="primary"):
+        generated = []
+        for va_type in va_type_map[va_choice]:
+            try:
+                path = export_curve_csv(selected_date, va_type)
+                generated.append((va_type, path))
+                st.success(f"✅ {va_type} — {path.name}")
+            except ValueError as e:
+                st.error(f"❌ {va_type} — {e}")
+
+        for va_type, path in generated:
+            with open(path, "rb") as f:
+                st.download_button(
+                    label=f"⬇️ Télécharger {path.name}",
+                    data=f.read(),
+                    file_name=path.name,
+                    mime="text/csv",
+                    key=f"download_{path.name}",
+                )
 
 
 if __name__ == "__main__":

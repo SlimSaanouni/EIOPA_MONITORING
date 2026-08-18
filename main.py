@@ -171,6 +171,45 @@ def show_historical_stats():
     print(f"\n{'=' * 80}")
 
 
+def _parse_date_arg(date_str: str) -> datetime:
+    try:
+        return datetime.strptime(date_str, '%Y-%m-%d')
+    except ValueError:
+        print(f"❌ Format de date invalide : {date_str}")
+        print("Format attendu : YYYY-MM-DD (ex: 2024-12-31)")
+        sys.exit(1)
+
+
+def export_curves(specific_date, va_type: str):
+    """
+    Exporte une courbe déjà ingérée au format d'échange (Maturity,Base,Up,Down)
+    consommé par ESG et Asset_PTF. Le choix NO_VA/WITH_VA reste à la charge
+    de la personne qui exporte (voir la doc externe sur la convention à
+    appliquer selon l'outil cible).
+    """
+    from src.exporter import export_curve_csv, available_export_dates
+
+    if specific_date is None:
+        dates = available_export_dates()
+        if not dates:
+            print("❌ Aucune courbe en base — rien à exporter.")
+            sys.exit(1)
+        specific_date = datetime.strptime(dates[0], "%Y-%m-%d")
+        print(f"Aucune date fournie, utilisation de la plus récente disponible : "
+              f"{specific_date.strftime('%Y-%m-%d')}")
+
+    va_types = ["NO_VA", "WITH_VA"] if va_type == "BOTH" else [va_type]
+    exit_code = 0
+    for vt in va_types:
+        try:
+            path = export_curve_csv(specific_date, vt)
+            print(f"✅ {vt} : {path}")
+        except ValueError as e:
+            print(f"❌ {vt} : {e}")
+            exit_code = 1
+    sys.exit(exit_code)
+
+
 def main():
     """Point d'entrée principal"""
     parser = argparse.ArgumentParser(
@@ -178,62 +217,77 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Exemples d'utilisation:
-  %(prog)s                          # Traite le dernier fichier disponible
-  %(prog)s --date 2024-12-31        # Traite un fichier spécifique
-  %(prog)s --list                   # Liste les fichiers disponibles
-  %(prog)s --stats                  # Affiche les statistiques historiques
+  %(prog)s                                 # Traite le dernier fichier disponible
+  %(prog)s --date 2024-12-31               # Traite un fichier spécifique
+  %(prog)s --list                          # Liste les fichiers disponibles
+  %(prog)s --stats                         # Affiche les statistiques historiques
+  %(prog)s --export --date 2024-12-31      # Exporte NO_VA + WITH_VA pour cette date
+  %(prog)s --export --va-type WITH_VA      # Exporte WITH_VA pour la date la plus récente en base
         """
     )
-    
+
     parser.add_argument(
         '--date',
         type=str,
-        help='Date spécifique à traiter (format: YYYY-MM-DD)'
+        help='Date spécifique (format: YYYY-MM-DD) — traitement ou export selon le mode'
     )
-    
+
     parser.add_argument(
         '--list',
         action='store_true',
         help='Lister les fichiers disponibles'
     )
-    
+
     parser.add_argument(
         '--stats',
         action='store_true',
         help='Afficher les statistiques historiques'
     )
-    
+
     parser.add_argument(
         '--force',
         action='store_true',
         help='Forcer le re-téléchargement'
     )
-    
+
+    parser.add_argument(
+        '--export',
+        action='store_true',
+        help="Exporter une courbe déjà ingérée au format Maturity,Base,Up,Down "
+             "(sans --date : la plus récente en base)"
+    )
+
+    parser.add_argument(
+        '--va-type',
+        choices=['NO_VA', 'WITH_VA', 'BOTH'],
+        default='BOTH',
+        help="Type de courbe à exporter avec --export (défaut : BOTH)"
+    )
+
     args = parser.parse_args()
-    
+
     # Mode listing
     if args.list:
         list_available_files()
         return
-    
+
     # Mode stats
     if args.stats:
         show_historical_stats()
         return
-    
+
+    # Mode export
+    if args.export:
+        specific_date = _parse_date_arg(args.date) if args.date else None
+        export_curves(specific_date, args.va_type)
+        return
+
     # Mode traitement
-    specific_date = None
-    if args.date:
-        try:
-            specific_date = datetime.strptime(args.date, '%Y-%m-%d')
-        except ValueError:
-            print(f"❌ Format de date invalide : {args.date}")
-            print("Format attendu : YYYY-MM-DD (ex: 2024-12-31)")
-            sys.exit(1)
-    
+    specific_date = _parse_date_arg(args.date) if args.date else None
+
     # Exécuter le traitement
     success = run_monthly_update(specific_date, args.force)
-    
+
     sys.exit(0 if success else 1)
 
 
