@@ -38,9 +38,6 @@ EXPECTED_EXCEL_FILES = [
     "*Term_Structures.xlsx",
 ]
 
-# Onglet principal des taux spot (utilisé par processor.py)
-EXCEL_SHEET_RFR = "RFR_spot_no_VA"
-
 # ==================== PAYS ET MATURITÉS ====================
 TARGET_COUNTRY    = "FR"
 TARGET_MATURITIES = [1, 5, 10, 20, 30]

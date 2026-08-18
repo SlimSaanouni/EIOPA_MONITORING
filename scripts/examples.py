@@ -7,7 +7,7 @@ from pathlib import Path
 
 from src.analyzer import EIOPAAnalyzer
 from src.downloader import EIOPADownloader
-from src.processor import EIOPAProcessor
+from src.ingestion import ingest_zip
 from src.utils import format_rate_pct, format_bps
 
 
@@ -27,12 +27,11 @@ def example_1_basic_usage():
         print("❌ Échec du téléchargement")
         return
     
-    # Traiter
-    processor = EIOPAProcessor(zip_path)
-    data = processor.process()
-    
-    if not data:
-        print("❌ Échec du traitement")
+    # Ingérer (extraction + écriture dans historical.db)
+    try:
+        data = ingest_zip(zip_path)
+    except ValueError as e:
+        print(f"❌ Échec de l'ingestion : {e}")
         return
     
     # Afficher les résultats

@@ -317,56 +317,5 @@ class EIOPAReporter:
         print(report)
 
 
-def main():
-    """Test du module de reporting"""
-    from downloader import EIOPADownloader
-    from processor import EIOPAProcessor
-    from src.analyzer import EIOPAAnalyzer
-    
-    # Pipeline complet
-    downloader = EIOPADownloader()
-    zip_path = downloader.download_latest()
-    
-    if not zip_path:
-        print("✗ Échec du téléchargement")
-        return
-    
-    processor = EIOPAProcessor(zip_path)
-    current_data = processor.process()
-    
-    if not current_data:
-        print("✗ Échec du traitement")
-        return
-    
-    # Analyser
-    analyzer = EIOPAAnalyzer()
-    analyzer.add_to_historical(current_data)
-    analysis = analyzer.analyze(current_data)
-    
-    # Générer les rapports
-    reporter = EIOPAReporter()
-    
-    # Console
-    print("\n" + "=" * 80)
-    print("RAPPORT CONSOLE")
-    print("=" * 80)
-    reporter.print_console_report(analysis)
-    
-    # Texte
-    text_file = LATEST_REPORT_FILE
-    reporter.generate_text_report(analysis, text_file)
-    print(f"\n✓ Rapport texte sauvegardé : {text_file}")
-    
-    # CSV
-    csv_file = LATEST_REPORT_FILE.with_suffix('.csv')
-    reporter.generate_csv_report(analysis, csv_file)
-    print(f"✓ Rapport CSV sauvegardé : {csv_file}")
-    
-    # Excel
-    excel_file = LATEST_REPORT_FILE.with_suffix('.xlsx')
-    reporter.generate_excel_report(analysis, excel_file)
-    print(f"✓ Rapport Excel sauvegardé : {excel_file}")
-
-
-if __name__ == "__main__":
-    main()
+# Pas de pipeline de test ici : main.py est le point d'entrée CLI canonique
+# (téléchargement -> ingestion -> analyse -> rapports).

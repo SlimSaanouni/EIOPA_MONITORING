@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from config import TARGET_COUNTRY, TARGET_MATURITIES
 from src.analyzer import EIOPAAnalyzer
 from src.downloader import EIOPADownloader
-from src.processor import EIOPAProcessor
+from src.ingestion import ingest_zip
 from src.reporter import EIOPAReporter
 from src.utils import format_rate_pct
 
@@ -194,24 +194,18 @@ def show_overview():
     
     st.subheader(f"📅 Dernière mise à jour : {latest_date.strftime('%d/%m/%Y')}")
     
-    # Métriques principales
-    col1, col2, col3, col4 = st.columns(4)
-    
-    with col1:
-        rate_1y = latest_row['rate_1y'] * 100
-        st.metric("Taux 1Y", f"{rate_1y:.2f}%")
-    
-    with col2:
-        rate_10y = latest_row['rate_10y'] * 100
-        st.metric("Taux 10Y", f"{rate_10y:.2f}%")
-    
-    with col3:
-        rate_30y = latest_row['rate_30y'] * 100
-        st.metric("Taux 30Y", f"{rate_30y:.2f}%")
-    
-    with col4:
-        va = latest_row['va'] * 100 if pd.notna(latest_row['va']) else 0
-        st.metric("VA", f"{va:.2f}%")
+    # Métriques principales — une par maturité suivie (config.TARGET_MATURITIES), plus VA
+    columns = st.columns(len(TARGET_MATURITIES) + 1)
+
+    for col, maturity in zip(columns[:-1], TARGET_MATURITIES):
+        with col:
+            col_name = f'rate_{maturity}y'
+            if col_name in latest_row and pd.notna(latest_row[col_name]):
+                st.metric(f"Taux {maturity}Y", f"{latest_row[col_name] * 100:.2f}%")
+
+    with columns[-1]:
+        va = latest_row['va'] * 100 if pd.notna(latest_row['va']) else None
+        st.metric("VA", f"{va:.2f}%" if va is not None else "N/A")
     
     # Courbe actuelle
     st.subheader("📈 Courbe des taux actuelle")
@@ -244,19 +238,19 @@ def show_overview():
 def show_update_page():
     """Page de mise à jour — liste les dates distantes et locales, télécharge la sélection."""
     st.header("🔄 Mise à jour des données")
- 
+
     # ------------------------------------------------------------------
-    # 1. Dates déjà traitées localement (fichiers NO_VA dans processed/)
+    # 1. Dates déjà ingérées en base (historical.db) — pas un scan de fichiers,
+    #    reflète l'état réel de la base plutôt que la présence d'un fichier extrait.
     # ------------------------------------------------------------------
-    from config import EXTRACTS_DIR
-    from src.utils import parse_date_from_filename
- 
-    local_dates = set()
-    for f in EXTRACTS_DIR.glob("EIOPA_RFR_*_Term_Structures.xlsx"):
-        d = parse_date_from_filename(f.name)
-        if d:
-            local_dates.add(d.date())
- 
+    from src import db
+
+    conn = db.get_connection()
+    try:
+        local_dates = {datetime.strptime(d, "%Y-%m-%d").date() for d in db.get_dates(conn, TARGET_COUNTRY)}
+    finally:
+        conn.close()
+
     # ------------------------------------------------------------------
     # 2. Dates disponibles sur le site EIOPA
     # ------------------------------------------------------------------
@@ -337,25 +331,23 @@ def run_update(selected_rows: list):
             if not zip_path:
                 results.append((label, False, "Échec du téléchargement"))
                 continue
- 
-            # Traitement
-            processor = EIOPAProcessor(zip_path)
-            current_data = processor.process()
-            if not current_data:
-                results.append((label, False, "Échec du traitement"))
-                continue
- 
-            # Analyse et historique
+
+            # Ingestion (extraction + écriture dans historical.db)
+            current_data = ingest_zip(zip_path)
+
+            # Analyse
             analyzer = get_analyzer()
-            analyzer.add_to_historical(current_data)
             analysis = analyzer.analyze(current_data)
- 
+
             # Rapport
             reporter = EIOPAReporter()
             reporter.generate_text_report(analysis)
- 
-            results.append((label, True, f"{len(current_data['rates'])} taux extraits"))
- 
+
+            message = f"{len(current_data['rates'])} taux extraits"
+            if current_data["status"] == "PARTIAL":
+                message += f" (⚠️ partiel : {'; '.join(current_data['missing_maturities'][:3])})"
+            results.append((label, True, message))
+
         except Exception as e:
             results.append((label, False, str(e)))
  
@@ -373,6 +365,7 @@ def run_update(selected_rows: list):
             st.error(f"❌ {label} — {message}")
  
     if any(s for _, s, _ in results):
+        get_analyzer().export_historical_csv()
         st.cache_data.clear()
 
 

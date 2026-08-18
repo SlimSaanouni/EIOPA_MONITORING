@@ -7,7 +7,7 @@ import sys
 
 from config import LATEST_REPORT_FILE
 from src.downloader import EIOPADownloader
-from src.processor import EIOPAProcessor
+from src.ingestion import ingest_zip
 from src.analyzer import EIOPAAnalyzer
 from src.reporter import EIOPAReporter
 from src.utils import setup_logging
@@ -45,28 +45,24 @@ def run_monthly_update(specific_date: datetime = None, force_redownload: bool = 
         
         logger.info(f"✅ Fichier téléchargé : {zip_path.name}")
         
-        # Étape 2 : Traitement
-        logger.info("\n[Étape 2/4] Extraction et traitement des données...")
-        processor = EIOPAProcessor(zip_path)
-        current_data = processor.process()
-        
-        if not current_data:
-            logger.error("❌ Échec du traitement des données")
+        # Étape 2 : Traitement (extraction + écriture dans historical.db)
+        logger.info("\n[Étape 2/4] Extraction et ingestion des données...")
+        try:
+            current_data = ingest_zip(zip_path)
+        except ValueError as e:
+            logger.error(f"❌ Échec de l'ingestion : {e}")
             return False
-        
-        logger.info(f"✅ Données extraites pour {current_data['country']} - "
+
+        logger.info(f"✅ Données ingérées pour {current_data['country']} - "
                    f"{current_data['reference_date'].strftime('%Y-%m-%d')}")
         logger.info(f"   - {len(current_data['rates'])} taux extraits")
         logger.info(f"   - VA : {'Disponible' if current_data.get('va') else 'Non disponible'}")
-        
+        if current_data["status"] == "PARTIAL":
+            logger.warning(f"   - ⚠️  Ingestion partielle : {'; '.join(current_data['missing_maturities'][:5])}")
+
         # Étape 3 : Analyse
         logger.info("\n[Étape 3/4] Analyse et comparaison...")
         analyzer = EIOPAAnalyzer()
-        
-        # Ajouter à l'historique
-        analyzer.add_to_historical(current_data)
-        
-        # Analyser avec comparaisons
         analysis = analyzer.analyze(current_data)
         
         logger.info("✅ Analyse complétée")
@@ -80,7 +76,11 @@ def run_monthly_update(specific_date: datetime = None, force_redownload: bool = 
         # Étape 4 : Génération des rapports
         logger.info("\n[Étape 4/4] Génération des rapports...")
         reporter = EIOPAReporter()
-        
+
+        # Export CSV régénéré depuis la base (lisible, versionnable — n'est plus la source de vérité)
+        analyzer.export_historical_csv()
+        logger.info("✅ historical.csv régénéré depuis historical.db")
+
         # Rapport texte
         text_file = LATEST_REPORT_FILE
         reporter.generate_text_report(analysis, text_file)
