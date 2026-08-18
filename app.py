@@ -65,6 +65,9 @@ st.markdown("""
         --border: rgba(11,11,11,0.10);
         --accent: #2a78d6;
         --accent-2: #eb6834;
+        /* Palette statut — fixe, mêmes valeurs en clair et en sombre (contraste validé sur les deux surfaces) */
+        --status-good: #0ca30c;
+        --status-critical: #d03b3b;
     }
     @media (prefers-color-scheme: dark) {
         :root {
@@ -131,6 +134,8 @@ st.markdown("""
         font-variant-numeric: tabular-nums;
         margin-top: 2px;
     }
+    .stat-tile .stat-delta.up { color: var(--status-good); }
+    .stat-tile .stat-delta.down { color: var(--status-critical); }
 
     /* Navigation sidebar — rows au lieu de boutons radio nus */
     div[data-testid="stRadio"] > div[role="radiogroup"] { gap: 2px; }
@@ -199,13 +204,17 @@ def render_brand_credit():
     """, unsafe_allow_html=True)
 
 
-def render_stat_tile(label: str, value: str, delta: str = ""):
-    """Carte de métrique (valeur + delta optionnel), remplace st.metric pour un rendu de marque."""
+def render_stat_tile(label: str, value: str, delta: str = "", delta_direction: str = ""):
+    """
+    Carte de métrique (valeur + delta optionnel), remplace st.metric pour un
+    rendu de marque. delta_direction: 'up' (vert), 'down' (rouge), ou '' (neutre).
+    """
+    delta_class = f" {delta_direction}" if delta_direction in ("up", "down") else ""
     st.markdown(f"""
     <div class="stat-tile">
         <p class="stat-label">{label}</p>
         <p class="stat-value">{value}</p>
-        {f'<p class="stat-delta">{delta}</p>' if delta else ''}
+        {f'<p class="stat-delta{delta_class}">{delta}</p>' if delta else ''}
     </div>
     """, unsafe_allow_html=True)
 
@@ -380,20 +389,21 @@ def show_overview():
     st.caption(f"📅 Dernière mise à jour : {latest_date.strftime('%d/%m/%Y')}")
 
     # Métriques principales — une par maturité suivie (config.TARGET_MATURITIES), plus VA.
-    # Le delta M/M est informatif (arrondi, encre neutre) : une hausse de taux
-    # n'est ni "bonne" ni "mauvaise" en soi, contrairement à une vraie alerte.
+    # Delta M/M : vert en hausse, rouge en baisse (demande explicite —
+    # remplace le rendu neutre initial).
     columns = st.columns(len(TARGET_MATURITIES) + 1)
 
     for col, maturity in zip(columns[:-1], TARGET_MATURITIES):
         with col:
             col_name = f'rate_{maturity}y'
             if col_name in latest_row and pd.notna(latest_row[col_name]):
-                delta = ""
+                delta, direction = "", ""
                 if previous_row is not None and pd.notna(previous_row.get(col_name)):
                     change_bps = (latest_row[col_name] - previous_row[col_name]) * 10000
+                    direction = "up" if change_bps >= 0 else "down"
                     arrow = "▲" if change_bps >= 0 else "▼"
                     delta = f"{arrow} {change_bps:+.1f} bps (M/M)"
-                render_stat_tile(f"Taux {maturity}Y", f"{latest_row[col_name] * 100:.2f}%", delta)
+                render_stat_tile(f"Taux {maturity}Y", f"{latest_row[col_name] * 100:.2f}%", delta, direction)
 
     with columns[-1]:
         va = latest_row['va'] * 100 if pd.notna(latest_row['va']) else None
