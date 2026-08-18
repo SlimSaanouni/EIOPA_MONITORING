@@ -83,8 +83,12 @@ if [ ! -f "main.py" ]; then
     exit 1
 fi
 
-# Créer un script Python temporaire pour lister les dates
-cat > /tmp/list_eiopa_dates.py << 'PYTHON_SCRIPT'
+# Créer un script Python temporaire pour lister les dates — dans un dossier
+# du projet (ignoré par git) plutôt que /tmp système, pour éviter tout
+# conflit avec un autre utilisateur/process sur une machine partagée.
+mkdir -p tmp
+TMP_SCRIPT="$(mktemp tmp/list_eiopa_dates.XXXXXX.py)"
+cat > "$TMP_SCRIPT" << 'PYTHON_SCRIPT'
 import sys
 sys.path.insert(0, '.')
 
@@ -95,7 +99,7 @@ import json
 try:
     downloader = EIOPADownloader()
     files = downloader.get_available_files()
-    
+
     dates_info = []
     for filename, url, date in files:
         dates_info.append({
@@ -103,7 +107,7 @@ try:
             'date': date.strftime('%Y-%m-%d'),
             'url': url
         })
-    
+
     print(json.dumps(dates_info))
 except Exception as e:
     print(f"ERROR: {e}", file=sys.stderr)
@@ -113,15 +117,15 @@ PYTHON_SCRIPT
 echo -e "${YELLOW}📋 Récupération de la liste des fichiers disponibles...${NC}"
 
 # Récupérer la liste des dates
-DATES_JSON=$($PYTHON_CMD /tmp/list_eiopa_dates.py)
+DATES_JSON=$($PYTHON_CMD "$TMP_SCRIPT")
 
 if [ $? -ne 0 ]; then
     echo -e "${RED}❌ Erreur lors de la récupération des fichiers disponibles${NC}"
-    rm -f /tmp/list_eiopa_dates.py
+    rm -f "$TMP_SCRIPT"
     exit 1
 fi
 
-rm -f /tmp/list_eiopa_dates.py
+rm -f "$TMP_SCRIPT"
 
 # Parser le JSON et filtrer les dates (sans jq)
 DATES_TO_PROCESS=()
