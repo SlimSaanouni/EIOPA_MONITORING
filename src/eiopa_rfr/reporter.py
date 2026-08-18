@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Dict, Optional
 from datetime import datetime
 
-from src.utils import setup_logging, format_bps, format_rate_pct
+from eiopa_rfr.utils import setup_logging, format_bps, format_rate_pct
 
 logger = setup_logging()
 

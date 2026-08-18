@@ -9,13 +9,13 @@ import pandas as pd
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
 
-from config import TARGET_COUNTRY, TARGET_MATURITIES
-from src.analyzer import EIOPAAnalyzer
-from src.downloader import EIOPADownloader
-from src.exporter import available_export_dates, export_curve_csv
-from src.ingestion import ingest_zip
-from src.reporter import EIOPAReporter
-from src.utils import format_rate_pct, setup_logging
+from eiopa_rfr.config import TARGET_COUNTRY, TARGET_MATURITIES
+from eiopa_rfr.analyzer import EIOPAAnalyzer
+from eiopa_rfr.downloader import EIOPADownloader
+from eiopa_rfr.exporter import available_export_dates, export_curve_csv
+from eiopa_rfr.ingestion import ingest_zip
+from eiopa_rfr.reporter import EIOPAReporter
+from eiopa_rfr.utils import format_rate_pct, setup_logging
 
 logger = setup_logging()
 
@@ -512,7 +512,7 @@ def show_update_page():
     # 1. Dates déjà ingérées en base (historical.db) — pas un scan de fichiers,
     #    reflète l'état réel de la base plutôt que la présence d'un fichier extrait.
     # ------------------------------------------------------------------
-    from src import db
+    from eiopa_rfr import db
 
     conn = db.get_connection()
     try:

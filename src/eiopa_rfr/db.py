@@ -12,8 +12,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Tuple
 
-from config import DB_BACKUP_DIR, DB_BACKUP_KEEP, DB_SCHEMA_FILE, HISTORICAL_DB
-from src.utils import setup_logging
+from eiopa_rfr.config import DB_BACKUP_DIR, DB_BACKUP_KEEP, DB_SCHEMA_FILE, HISTORICAL_DB
+from eiopa_rfr.utils import setup_logging
 
 logger = setup_logging()
 

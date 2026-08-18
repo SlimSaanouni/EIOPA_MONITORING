@@ -2,7 +2,7 @@ import sqlite3
 
 import pytest
 
-from src import db
+from eiopa_rfr import db
 
 
 class TestSchema:
@@ -17,7 +17,7 @@ class TestSchema:
 
     def test_init_schema_is_idempotent(self, test_db_path):
         # Ré-appliquer le schéma sur une base déjà initialisée ne doit pas lever d'erreur
-        from config import DB_SCHEMA_FILE
+        from eiopa_rfr.config import DB_SCHEMA_FILE
         db.init_schema(db_path=test_db_path, schema_file=DB_SCHEMA_FILE)
 
     def test_curves_rejects_invalid_va_type(self, conn):

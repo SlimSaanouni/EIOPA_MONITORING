@@ -11,9 +11,9 @@ from typing import List
 
 import pandas as pd
 
-from config import HISTORICAL_DB, PROCESSED_DIR, TARGET_COUNTRY
-from src import db
-from src.utils import setup_logging
+from eiopa_rfr.config import HISTORICAL_DB, PROCESSED_DIR, TARGET_COUNTRY
+from eiopa_rfr import db
+from eiopa_rfr.utils import setup_logging
 
 logger = setup_logging()
 

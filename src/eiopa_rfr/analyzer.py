@@ -9,12 +9,12 @@ from typing import Dict, List, Optional
 
 import pandas as pd
 
-from config import (
+from eiopa_rfr.config import (
     ALERT_THRESHOLD_MOM, ALERT_THRESHOLD_YTD, HISTORICAL_DB, HISTORICAL_FILE,
     TARGET_COUNTRY, TARGET_MATURITIES,
 )
-from src import db
-from src.utils import (
+from eiopa_rfr import db
+from eiopa_rfr.utils import (
     create_summary_dict, format_bps, get_previous_month_date, get_year_start_date,
     setup_logging,
 )

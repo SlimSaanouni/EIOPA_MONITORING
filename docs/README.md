@@ -11,22 +11,28 @@ Cet outil remplit deux fonctions :
 
 ## Architecture
 
+Package installable (`pip install -e .`), layout `src/` — `app.py`/`main.py` restent à la racine (convention Streamlit, et pour que `python main.py`/`streamlit run app.py` continuent de fonctionner tels quels), le reste vit dans `eiopa_rfr`, importable comme n'importe quel paquet Python :
+
 ```
 EIOPA_RFR/
-├── config.py               # Tous les paramètres centralisés
-├── main.py                 # Point d'entrée CLI
-├── app.py                  # Dashboard Streamlit
-├── requirements.txt
+├── pyproject.toml          # Métadonnées, dépendances, config pytest — source de vérité unique
+├── requirements.txt        # -e . (compatibilité outils qui cherchent un requirements.txt, ex. SCC)
+├── main.py                 # Point d'entrée CLI — délègue à eiopa_rfr.main
+├── app.py                  # Dashboard Streamlit — importe depuis eiopa_rfr
+├── run.sh / run.bat        # Lancement via venv/bin/streamlit directement (voir Dépannage)
 │
-├── src/
-│   ├── downloader.py       # Téléchargement depuis le site EIOPA
-│   ├── ingestion.py        # Extraction Excel -> écriture SQLite (courbes + métadonnées)
-│   ├── exporter.py         # Génération des CSV Maturity,Base,Up,Down (GSE / Asset_PTF)
+├── src/eiopa_rfr/
+│   ├── config.py            # Tous les paramètres centralisés
+│   ├── downloader.py        # Téléchargement depuis le site EIOPA
+│   ├── ingestion.py         # Extraction Excel -> écriture SQLite (courbes + métadonnées)
+│   ├── exporter.py          # Génération des CSV Maturity,Base,Up,Down (GSE / Asset_PTF)
 │   ├── db.py                # Accès à historical.db (schéma, transactions, requêtes)
-│   ├── schema.sql            # Définition des tables curves / curve_metadata / ingestion_runs
+│   ├── schema.sql           # Définition des tables curves / curve_metadata / ingestion_runs
 │   ├── analyzer.py          # Comparaisons M/M, YTD, alertes (lecture seule sur la base)
 │   ├── reporter.py          # Rapports texte / CSV / Excel
-│   └── utils.py              # Fonctions utilitaires partagées
+│   └── utils.py             # Fonctions utilitaires partagées
+│
+├── tests/                   # pytest — voir section Tests
 │
 └── data/
     ├── raw/                # ZIP téléchargés depuis l'EIOPA
@@ -47,16 +53,18 @@ python -m venv venv
 source venv/bin/activate      # Linux / Mac
 venv\Scripts\activate         # Windows
 
-# Installer les dépendances
+# Installer le projet (mode éditable) + ses dépendances
 pip install -r requirements.txt
 ```
+
+`requirements.txt` ne contient qu'une ligne (`-e .`) : la vraie liste de dépendances vit dans `pyproject.toml`, source de vérité unique. Cette commande installe aussi `eiopa_rfr` en tant que paquet Python importable (`import eiopa_rfr`), condition nécessaire pour que `app.py`/`main.py`/les tests fonctionnent.
 
 ---
 
 ## Tests
 
 ```bash
-pip install -r requirements-dev.txt
+pip install -e ".[dev]"
 pytest tests/ -v
 ```
 
@@ -148,7 +156,7 @@ Down = ROUND(base − MAX(0.00, shock_down × |base|), 5)
 
 ---
 
-## Configuration (`config.py`)
+## Configuration (`src/eiopa_rfr/config.py`)
 
 | Paramètre | Défaut | Variable d'environnement | Description |
 |---|---|---|---|
@@ -209,7 +217,7 @@ La page "📤 Export" reste disponible sur l'instance hébergée : elle ne fait 
 | Erreur | Cause | Solution |
 |---|---|---|
 | `Aucun fichier trouvé pour la date X` | Fichier non encore publié | EIOPA publie début du mois suivant. Utiliser `--list` pour voir les dates disponibles. |
-| `Colonne pays introuvable` | Format Excel modifié par l'EIOPA | Vérifier les noms de colonnes dans `data/extracts/` et mettre à jour `COUNTRY_ALIASES` dans `src/ingestion.py`. |
+| `Colonne pays introuvable` | Format Excel modifié par l'EIOPA | Vérifier les noms de colonnes dans `data/extracts/` et mettre à jour `COUNTRY_ALIASES` dans `src/eiopa_rfr/ingestion.py`. |
 | `Aucune courbe ... en base` lors d'un export | Mois jamais ingéré | Lancer `main.py --date <date>` (ou la page "Mise à jour") avant d'exporter. |
 | `Module openpyxl introuvable` | Dépendance manquante | `pip install openpyxl` |
 | Chocs Up/Down à 0 dans un CSV | Formules Excel non calculées côté EIOPA | Normal : les chocs sont recalculés directement en Python depuis l'onglet `Shocks`, jamais lus depuis les onglets de choc pré-calculés d'EIOPA (peu fiables). |
@@ -220,7 +228,7 @@ La page "📤 Export" reste disponible sur l'instance hébergée : elle ne fait 
 
 ## Points d'attention
 
-- **Format EIOPA** : le format du fichier Excel peut évoluer. En cas de rupture, vérifier les noms d'onglets et de colonnes dans `src/ingestion.py` (`SHEET_NAMES`, `COUNTRY_ALIASES`, `METADATA_LABELS`).
+- **Format EIOPA** : le format du fichier Excel peut évoluer. En cas de rupture, vérifier les noms d'onglets et de colonnes dans `src/eiopa_rfr/ingestion.py` (`SHEET_NAMES`, `COUNTRY_ALIASES`, `METADATA_LABELS`).
 - **Dates de publication** : l'EIOPA publie les données du mois M entre le 5 et le 10 du mois M+1.
 - **Historique** : `data/historical.db` est la source de vérité — à versionner et sauvegarder régulièrement (des sauvegardes horodatées locales sont aussi créées automatiquement dans `data/db_backups/` avant chaque écriture).
 - **Choix NO_VA/WITH_VA à l'export** : jamais décidé par cet outil — la convention à appliquer selon l'outil consommateur (GSE, Asset_PTF, ou futur outil) est une décision méthodologique à documenter séparément.

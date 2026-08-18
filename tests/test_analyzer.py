@@ -2,7 +2,7 @@ from datetime import datetime
 
 import pytest
 
-from src.analyzer import EIOPAAnalyzer
+from eiopa_rfr.analyzer import EIOPAAnalyzer
 from tests.conftest import seed_curve, seed_metadata
 
 

@@ -1,4 +1,0 @@
-# Dépendances de développement uniquement (tests) — non nécessaires pour
-# faire tourner l'application elle-même, voir requirements.txt.
--r requirements.txt
-pytest>=8.0.0,<9.0.0

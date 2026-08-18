@@ -1,24 +1,5 @@
-# Dépendances pour le système de monitoring EIOPA
-# Python 3.8+
-#
-# Bornes supérieures = prochaine version majeure (jamais testée, potentiellement
-# cassante). Planchers = versions réellement testées (voir README pour les
-# fonctionnalités Streamlit récentes utilisées : st.navigation, st.Page,
-# theme.light/theme.dark — absentes des versions plus anciennes).
-
-# Traitement de données
-pandas>=2.3.0,<3.0.0
-numpy>=2.2.0,<3.0.0
-
-# Lecture de fichiers Excel
-openpyxl>=3.1.0,<4.0.0
-
-# Requêtes HTTP et parsing HTML
-requests>=2.32.0,<3.0.0
-beautifulsoup4>=4.14.0,<5.0.0
-
-# Visualisation
-plotly>=6.5.0,<7.0.0
-
-# Interface Streamlit (pour dashboard)
-streamlit>=1.52.0,<2.0.0
+# Installe le projet en mode éditable + toutes ses dépendances runtime.
+# Source de vérité unique : pyproject.toml ([project.dependencies]).
+# Ce fichier existe pour la compatibilité avec les outils qui cherchent
+# spécifiquement un requirements.txt (ex. Streamlit Community Cloud).
+-e .

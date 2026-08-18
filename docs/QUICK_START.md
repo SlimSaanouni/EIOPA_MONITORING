@@ -73,7 +73,7 @@ Maturity,Base,Up,Down
 
 ## Configuration rapide
 
-Tout se règle dans `config.py` :
+Tout se règle dans `src/eiopa_rfr/config.py` :
 
 ```python
 TARGET_COUNTRY    = "FR"                # Changer pour "DE", "IT", etc.

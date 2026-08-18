@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 
-from src.ingestion import (
+from eiopa_rfr.ingestion import (
     _compute_shocks,
     _extract_curve_series,
     _extract_metadata,

@@ -9,7 +9,7 @@ from typing import Dict, Optional
 
 import pandas as pd
 
-from config import LOG_FORMAT, LOG_DATE_FORMAT, LOG_FILE, MIN_RATE, MAX_RATE
+from eiopa_rfr.config import LOG_FORMAT, LOG_DATE_FORMAT, LOG_FILE, MIN_RATE, MAX_RATE
 
 
 def setup_logging(log_file: Path = LOG_FILE) -> logging.Logger:

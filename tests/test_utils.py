@@ -2,7 +2,7 @@ from datetime import datetime
 
 import pytest
 
-from src.utils import (
+from eiopa_rfr.utils import (
     calculate_bps_change,
     create_summary_dict,
     format_bps,

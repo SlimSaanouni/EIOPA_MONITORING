@@ -17,7 +17,10 @@ def _env_int(name: str, default: int) -> int:
         return default
 
 # ==================== CHEMINS ====================
-BASE_DIR      = Path(__file__).parent
+# BASE_DIR = racine du dépôt (data/, logs/, assets/, .streamlit/ y vivent),
+# pas le dossier du package : config.py est maintenant à src/eiopa_rfr/,
+# deux niveaux sous la racine.
+BASE_DIR      = Path(__file__).resolve().parents[2]
 DATA_DIR      = BASE_DIR / "data"
 RAW_DIR       = DATA_DIR / "raw"
 EXTRACTS_DIR  = DATA_DIR / "extracts"
@@ -33,7 +36,7 @@ LATEST_REPORT_FILE = DATA_DIR / "latest_report.txt"
 
 # ==================== BASE DE DONNÉES ====================
 HISTORICAL_DB   = DATA_DIR / "historical.db"           # source de vérité
-DB_SCHEMA_FILE  = BASE_DIR / "src" / "schema.sql"
+DB_SCHEMA_FILE  = Path(__file__).parent / "schema.sql"  # colocalisé avec config.py dans le package
 DB_BACKUP_DIR   = DATA_DIR / "db_backups"
 DB_BACKUP_KEEP  = _env_int("EIOPA_DB_BACKUP_KEEP", 14)  # nombre de jours distincts conservés (1 backup/jour max)
 

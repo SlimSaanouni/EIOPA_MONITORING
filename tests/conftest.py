@@ -1,12 +1,11 @@
-import sys
 from pathlib import Path
 
 import pytest
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from config import DB_SCHEMA_FILE
-from src import db as db_module
+# eiopa_rfr doit être installé (pip install -e ".[dev]") pour être importable
+# ici — pas de bidouille sys.path, cohérent avec le layout src/ du paquet.
+from eiopa_rfr.config import DB_SCHEMA_FILE
+from eiopa_rfr import db as db_module
 
 
 @pytest.fixture

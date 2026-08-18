@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "eiopa-rfr-monitoring"
+version = "1.0.0"
+description = "Monitoring des taux sans risque EIOPA (Solvency II) — ingestion, historique, export vers GSE/Asset_PTF"
+requires-python = ">=3.10"
+dependencies = [
+    "pandas>=2.3.0,<3.0.0",
+    "numpy>=2.2.0,<3.0.0",
+    "openpyxl>=3.1.0,<4.0.0",
+    "requests>=2.32.0,<3.0.0",
+    "beautifulsoup4>=4.14.0,<5.0.0",
+    "plotly>=6.5.0,<7.0.0",
+    # st.navigation/st.Page, theme.light/theme.dark, width='stretch' —
+    # absents des versions antérieures (voir le garde-fou dans app.py).
+    "streamlit>=1.52.0,<2.0.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0.0,<9.0.0"]
+
+[project.scripts]
+eiopa-rfr = "eiopa_rfr.main:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+eiopa_rfr = ["schema.sql"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

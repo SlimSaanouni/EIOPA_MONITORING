@@ -19,9 +19,9 @@ from typing import Dict, List, Optional, Tuple
 import numpy as np
 import pandas as pd
 
-from config import BPS_CONVERSION, EXPECTED_EXCEL_FILES, EXTRACTS_DIR, TARGET_COUNTRY
-from src import db
-from src.utils import parse_date_from_filename, setup_logging, validate_rate
+from eiopa_rfr.config import BPS_CONVERSION, EXPECTED_EXCEL_FILES, EXTRACTS_DIR, TARGET_COUNTRY
+from eiopa_rfr import db
+from eiopa_rfr.utils import parse_date_from_filename, setup_logging, validate_rate
 
 logger = setup_logging()
 

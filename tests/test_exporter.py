@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 
-from src.exporter import available_export_dates, export_curve_csv
+from eiopa_rfr.exporter import available_export_dates, export_curve_csv
 from tests.conftest import seed_full_curve
 
 
