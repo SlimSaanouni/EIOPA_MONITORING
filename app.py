@@ -15,7 +15,9 @@ from src.downloader import EIOPADownloader
 from src.exporter import available_export_dates, export_curve_csv
 from src.ingestion import ingest_zip
 from src.reporter import EIOPAReporter
-from src.utils import format_rate_pct
+from src.utils import format_rate_pct, setup_logging
+
+logger = setup_logging()
 
 # Logo SSA Analytics — deux variantes (traits noirs / traits blancs), la même
 # icône. logo_white.svg pour les fonds sombres/colorés, logo.svg pour les
@@ -38,11 +40,21 @@ st.set_page_config(
 # de production est ingérée en local puis poussée sur git — voir le README,
 # section "Déploiement". Ce flag se règle via les Secrets de l'app hébergée
 # (jamais commité), absent = False par défaut pour un usage local normal.
-# st.secrets lève une exception (pas juste une valeur manquante) tant qu'aucun
-# fichier secrets.toml n'existe du tout — normal en local, à absorber ici.
+# st.secrets lève StreamlitSecretNotFoundError aussi bien pour "aucun
+# fichier" que pour "fichier illisible/mal formé" (même classe d'exception
+# dans les deux cas, vérifié empiriquement — le message d'erreur diffère
+# mais pas le type). On distingue donc les deux cas nous-mêmes : silence
+# uniquement si aucun secrets.toml n'existe sur les chemins que Streamlit
+# regarde ; toute erreur alors qu'un fichier existe est loguée, car
+# retomber sur False sans bruit désactiverait la protection lecture-seule
+# sans que personne ne le sache, sur l'instance même où elle importe le plus.
+_SECRETS_PATHS = [Path.home() / ".streamlit" / "secrets.toml", Path(__file__).parent / ".streamlit" / "secrets.toml"]
+_SECRETS_FILE_EXISTS = any(p.exists() for p in _SECRETS_PATHS)
 try:
     READONLY_DASHBOARD = st.secrets.get("READONLY_DASHBOARD", False)
-except Exception:
+except Exception as e:
+    if _SECRETS_FILE_EXISTS:
+        logger.error(f"Erreur en lisant st.secrets alors qu'un secrets.toml existe (READONLY_DASHBOARD forcé à False) : {e}")
     READONLY_DASHBOARD = False
 
 # ---------------------------------------------------------------------------
@@ -542,6 +554,7 @@ def run_update(selected_rows: list):
             downloader = EIOPADownloader()
             zip_path = downloader.download_file(row["_url"], row["_filename"])
             if not zip_path:
+                logger.error(f"[Mise à jour] Échec du téléchargement pour {label} ({row['_filename']})")
                 results.append((label, False, "Échec du téléchargement"))
                 continue
 
@@ -562,6 +575,7 @@ def run_update(selected_rows: list):
             results.append((label, True, message))
 
         except Exception as e:
+            logger.error(f"[Mise à jour] Échec du traitement pour {label} : {e}", exc_info=True)
             results.append((label, False, str(e)))
  
         progress_bar.progress((i + 1) / total)
