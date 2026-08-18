@@ -88,6 +88,11 @@ Lance directement `venv/bin/streamlit` (ou `venv\Scripts\streamlit.exe`), sans d
 source venv/bin/activate && streamlit run app.py
 ```
 
+Une fois le venv activé, la commande `eiopa-rfr-app` fait la même chose et fonctionne depuis n'importe quel répertoire (pas besoin d'être dans le dossier du projet) :
+```bash
+eiopa-rfr-app
+```
+
 Le dashboard permet de :
 - Visualiser la courbe des taux actuelle et son historique
 - Télécharger un ou plusieurs mois en une seule action ("🔄 Mise à jour")
