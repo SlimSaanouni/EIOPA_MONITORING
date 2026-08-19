@@ -56,9 +56,10 @@ logs/*.log
 # pyenv
 .python-version
 
-# Environnements IDE
+# Environnements IDE / outils dev locaux
 .vscode/
 .idea/
+.claude/
 *.swp
 *.swo
 *~

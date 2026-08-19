@@ -34,3 +34,8 @@ eiopa_rfr = ["schema.sql"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# tests/conftest.py est importé comme `tests.conftest` (pas juste `conftest`)
+# par test_analyzer.py/test_exporter.py — sans ça, la racine du dépôt n'est
+# sur sys.path que si pytest est lancé via `python -m pytest` (cas local),
+# pas via le binaire `pytest` direct (cas CI) : ModuleNotFoundError('tests').
+pythonpath = ["."]
