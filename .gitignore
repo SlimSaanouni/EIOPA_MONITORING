@@ -30,6 +30,7 @@ wheels/
 
 # Données téléchargées et générées
 data/raw/*.zip
+data/raw/*.xlsx
 data/extracts/*.xlsx
 data/processed/*.csv
 data/latest_report.*

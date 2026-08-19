@@ -89,10 +89,7 @@ fi
 mkdir -p tmp
 TMP_SCRIPT="$(mktemp tmp/list_eiopa_dates.XXXXXX.py)"
 cat > "$TMP_SCRIPT" << 'PYTHON_SCRIPT'
-import sys
-sys.path.insert(0, '.')
-
-from src.downloader import EIOPADownloader
+from eiopa_rfr.downloader import EIOPADownloader
 from datetime import datetime
 import json
 
@@ -192,7 +189,6 @@ echo ""
 # Compteurs
 SUCCESS_COUNT=0
 ERROR_COUNT=0
-SKIPPED_COUNT=0
 
 # Créer un fichier de log
 LOG_FILE="logs/bulk_download_$(date +%Y%m%d_%H%M%S).log"
@@ -226,15 +222,9 @@ for entry in "${DATES_TO_PROCESS[@]}"; do
         SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
     else
         EXIT_CODE=$?
-        if [ $EXIT_CODE -eq 2 ]; then
-            echo -e "${YELLOW}  ⏭️  Déjà traité (ignoré)${NC}"
-            echo "  ⏭️  Déjà traité" >> "$LOG_FILE"
-            SKIPPED_COUNT=$((SKIPPED_COUNT + 1))
-        else
-            echo -e "${RED}  ❌ Erreur${NC}"
-            echo "  ❌ Erreur (code: $EXIT_CODE)" >> "$LOG_FILE"
-            ERROR_COUNT=$((ERROR_COUNT + 1))
-        fi
+        echo -e "${RED}  ❌ Erreur${NC}"
+        echo "  ❌ Erreur (code: $EXIT_CODE)" >> "$LOG_FILE"
+        ERROR_COUNT=$((ERROR_COUNT + 1))
     fi
     
     echo "" | tee -a "$LOG_FILE"
@@ -253,7 +243,6 @@ echo ""
 echo -e "Total traité  : ${BLUE}$TOTAL_FILES${NC}"
 echo -e "Succès        : ${GREEN}$SUCCESS_COUNT${NC}"
 echo -e "Erreurs       : ${RED}$ERROR_COUNT${NC}"
-echo -e "Ignorés       : ${YELLOW}$SKIPPED_COUNT${NC}"
 echo ""
 echo -e "Log détaillé  : ${LOG_FILE}"
 echo ""
@@ -265,7 +254,6 @@ echo "========================================" >> "$LOG_FILE"
 echo "Total traité : $TOTAL_FILES" >> "$LOG_FILE"
 echo "Succès       : $SUCCESS_COUNT" >> "$LOG_FILE"
 echo "Erreurs      : $ERROR_COUNT" >> "$LOG_FILE"
-echo "Ignorés      : $SKIPPED_COUNT" >> "$LOG_FILE"
 echo "" >> "$LOG_FILE"
 echo "Traitement terminé à $(date)" >> "$LOG_FILE"
 

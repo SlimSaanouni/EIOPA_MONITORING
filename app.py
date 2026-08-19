@@ -834,7 +834,7 @@ def show_export_page():
             except ValueError as e:
                 st.error(f"❌ {va_type} — {e}")
 
-        for va_type, path in generated:
+        for _va_type, path in generated:
             with open(path, "rb") as f:
                 st.download_button(
                     label=f"⬇️ Télécharger {path.name}",

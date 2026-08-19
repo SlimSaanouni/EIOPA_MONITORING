@@ -34,10 +34,10 @@ def run_monthly_update(specific_date: datetime = None, force_redownload: bool = 
         
         if specific_date:
             logger.info(f"Recherche du fichier pour la date : {specific_date.strftime('%Y-%m-%d')}")
-            zip_path = downloader.download_by_date(specific_date)
+            zip_path = downloader.download_by_date(specific_date, force=force_redownload)
         else:
             logger.info("Recherche du dernier fichier disponible...")
-            zip_path = downloader.download_latest()
+            zip_path = downloader.download_latest(force=force_redownload)
         
         if not zip_path:
             logger.error("❌ Échec du téléchargement")
@@ -133,7 +133,7 @@ def list_available_files():
         print(f"FICHIERS DISPONIBLES ({len(files)} fichiers)")
         print(f"{'=' * 80}\n")
         
-        for i, (filename, url, date) in enumerate(files[:20], 1):  # Limiter à 20
+        for i, (filename, _url, date) in enumerate(files[:20], 1):  # Limiter à 20
             print(f"{i:2d}. {date.strftime('%Y-%m-%d')} - {filename}")
         
         if len(files) > 20:

@@ -103,7 +103,7 @@ class EIOPAReporter:
             lines.append("")
             
             lines.append("Variation des taux (en points de base):")
-            for maturity in sorted([k for k in analysis['changes_mom'].keys() if k != 'va']):
+            for maturity in sorted([k for k in analysis['changes_mom'] if k != 'va']):
                 change = analysis['changes_mom'][maturity]
                 indicator = "🔴" if abs(change) >= 50 else "🟢"
                 lines.append(f"  {indicator} Taux {maturity:2d}Y : {format_bps(change)}")
@@ -126,7 +126,7 @@ class EIOPAReporter:
             lines.append("")
             
             lines.append("Variation des taux (en points de base):")
-            for maturity in sorted([k for k in analysis['changes_ytd'].keys() if k != 'va']):
+            for maturity in sorted([k for k in analysis['changes_ytd'] if k != 'va']):
                 change = analysis['changes_ytd'][maturity]
                 indicator = "🔴" if abs(change) >= 100 else "🟢"
                 lines.append(f"  {indicator} Taux {maturity:2d}Y : {format_bps(change)}")
@@ -261,7 +261,7 @@ class EIOPAReporter:
                 # Feuille 2 : Variations M/M
                 if analysis['changes_mom']:
                     mom_data = []
-                    for maturity in sorted([k for k in analysis['changes_mom'].keys() if k != 'va']):
+                    for maturity in sorted([k for k in analysis['changes_mom'] if k != 'va']):
                         mom_data.append({
                             'Maturité': f'{maturity}Y',
                             'Variation (bps)': analysis['changes_mom'][maturity]
@@ -273,7 +273,7 @@ class EIOPAReporter:
                 # Feuille 3 : Variations YTD
                 if analysis['changes_ytd']:
                     ytd_data = []
-                    for maturity in sorted([k for k in analysis['changes_ytd'].keys() if k != 'va']):
+                    for maturity in sorted([k for k in analysis['changes_ytd'] if k != 'va']):
                         ytd_data.append({
                             'Maturité': f'{maturity}Y',
                             'Variation (bps)': analysis['changes_ytd'][maturity]

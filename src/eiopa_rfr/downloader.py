@@ -134,22 +134,23 @@ class EIOPADownloader:
             logger.error(f"Aucun fichier trouvé pour la date {target_date.strftime('%Y-%m-%d')}")
             return None
     
-    def download_file(self, url: str, filename: str, output_dir: Path = RAW_DIR) -> Optional[Path]:
+    def download_file(self, url: str, filename: str, output_dir: Path = RAW_DIR, force: bool = False) -> Optional[Path]:
         """
         Télécharge un fichier depuis l'URL
-        
+
         Args:
             url: URL du fichier
             filename: Nom du fichier
             output_dir: Dossier de sortie
-            
+            force: Re-télécharger même si le fichier existe déjà
+
         Returns:
             Chemin du fichier téléchargé ou None
         """
         output_path = output_dir / filename
-        
+
         # Vérifier si le fichier existe déjà
-        if output_path.exists():
+        if output_path.exists() and not force:
             logger.info(f"Fichier déjà téléchargé: {output_path}")
             return output_path
         
@@ -191,58 +192,39 @@ class EIOPADownloader:
         
         return None
     
-    def download_latest(self) -> Optional[Path]:
+    def download_latest(self, force: bool = False) -> Optional[Path]:
         """
         Télécharge le dernier fichier disponible
-        
+
+        Args:
+            force: Re-télécharger même si le fichier existe déjà
+
         Returns:
             Chemin du fichier téléchargé ou None
         """
         latest = self.get_latest_file()
-        
+
         if not latest:
             return None
-        
+
         filename, url, file_date = latest
-        return self.download_file(url, filename)
-    
-    def download_by_date(self, target_date: datetime) -> Optional[Path]:
+        return self.download_file(url, filename, force=force)
+
+    def download_by_date(self, target_date: datetime, force: bool = False) -> Optional[Path]:
         """
         Télécharge le fichier pour une date spécifique
-        
+
         Args:
             target_date: Date cible
-            
+            force: Re-télécharger même si le fichier existe déjà
+
         Returns:
             Chemin du fichier téléchargé ou None
         """
         file_info = self.get_file_by_date(target_date)
-        
+
         if not file_info:
             return None
-        
+
         filename, url, file_date = file_info
-        return self.download_file(url, filename)
-
-
-def main():
-    """Test du module de téléchargement"""
-    downloader = EIOPADownloader()
-    
-    # Afficher les 5 derniers fichiers disponibles
-    files = downloader.get_available_files()[:5]
-    print("\n=== 5 derniers fichiers disponibles ===")
-    for filename, url, date in files:
-        print(f"  - {filename}: {date.strftime('%Y-%m-%d')}")
-    
-    # Télécharger le dernier fichier
-    print("\n=== Téléchargement du dernier fichier ===")
-    latest_path = downloader.download_latest()
-    if latest_path:
-        print(f"✓ Fichier téléchargé: {latest_path}")
-    else:
-        print("✗ Échec du téléchargement")
-
-
-if __name__ == "__main__":
-    main()
+        return self.download_file(url, filename, force=force)
