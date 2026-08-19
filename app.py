@@ -58,6 +58,20 @@ _ASSETS_DIR = Path(__file__).parent / "assets"
 LOGO_LIGHT = (_ASSETS_DIR / "logo.svg").read_text()        # traits noirs — fond clair
 LOGO_DARK = (_ASSETS_DIR / "logo_white.svg").read_text()   # traits blancs — fond sombre/coloré
 
+# Crédit auteur (sidebar, sous "Propulsé par SSA Analytics") — à mettre à jour
+# si le rôle ou le lien LinkedIn changent.
+AUTHOR_NAME = "Slim Saanouni"
+AUTHOR_ROLE = "Fully Qualified Actuary — Actuarial Processes Automation"
+AUTHOR_LINKEDIN_URL = "https://www.linkedin.com/in/slim-saanouni-51a630a7/"
+_LINKEDIN_ICON = (
+    '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">'
+    '<path d="M20.5 2h-17A1.5 1.5 0 0 0 2 3.5v17A1.5 1.5 0 0 0 3.5 22h17a1.5 1.5 0 0 0 1.5-1.5v-17'
+    'A1.5 1.5 0 0 0 20.5 2zM8 19H5v-9h3zM6.5 8.25A1.75 1.75 0 1 1 8.3 6.5a1.78 1.78 0 0 1-1.8 1.75z'
+    'M19 19h-3v-4.74c0-1.42-.6-2.26-1.78-2.26A1.94 1.94 0 0 0 12.4 14a2.5 2.5 0 0 0-.1.9V19h-3'
+    's.05-8.1 0-9h3v1.35a3 3 0 0 1 2.7-1.5c2 0 3.4 1.28 3.4 4.03z"/>'
+    '</svg>'
+)
+
 # Configuration de la page
 st.set_page_config(
     page_title="EIOPA Monitoring Dashboard",
@@ -207,6 +221,35 @@ st.markdown("""
     .eiopa-brand-credit .eiopa-logo-footer svg { height: 100%; width: 100%; display: block; }
     .eiopa-brand-credit span { font-size: 0.78rem; color: var(--ink-secondary); }
 
+    /* Crédit auteur — sous le crédit de marque */
+    .eiopa-author-credit {
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid var(--border);
+    }
+    .eiopa-author-credit .eiopa-author-name {
+        display: block;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--ink-primary);
+    }
+    .eiopa-author-credit .eiopa-author-role {
+        display: block;
+        font-size: 0.72rem;
+        color: var(--ink-muted);
+        margin: 2px 0 6px;
+    }
+    .eiopa-author-credit .eiopa-linkedin-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.78rem;
+        color: var(--accent);
+        text-decoration: none;
+    }
+    .eiopa-author-credit .eiopa-linkedin-link:hover { text-decoration: underline; }
+    .eiopa-author-credit .eiopa-linkedin-link svg { width: 14px; height: 14px; flex-shrink: 0; }
+
     /* Variante du logo affichée selon le mode — une seule des deux existe
        dans le DOM à la fois visuellement, l'autre est masquée. */
     .eiopa-logo-dark-only { display: none; }
@@ -248,12 +291,20 @@ def render_hero(title: str, subtitle: str = ""):
 
 
 def render_brand_credit():
-    """Crédit 'Propulsé par SSA Analytics' avec logo adapté au mode clair/sombre actif."""
+    """Crédit 'Propulsé par SSA Analytics' (logo adapté au mode clair/sombre)
+    + profil auteur (nom, rôle, lien LinkedIn)."""
     st.markdown(f"""
     <div class="eiopa-brand-credit" aria-label="Propulsé par SSA Analytics">
         <div class="eiopa-logo-footer eiopa-logo-light-only" aria-hidden="true">{LOGO_LIGHT}</div>
         <div class="eiopa-logo-footer eiopa-logo-dark-only" aria-hidden="true">{LOGO_DARK}</div>
         <span>Propulsé par SSA Analytics</span>
+    </div>
+    <div class="eiopa-author-credit">
+        <span class="eiopa-author-name">{AUTHOR_NAME}</span>
+        <span class="eiopa-author-role">{AUTHOR_ROLE}</span>
+        <a class="eiopa-linkedin-link" href="{AUTHOR_LINKEDIN_URL}" target="_blank" rel="noopener noreferrer">
+            {_LINKEDIN_ICON}LinkedIn
+        </a>
     </div>
     """, unsafe_allow_html=True)
 
