@@ -2,6 +2,7 @@
 Dashboard Streamlit pour le monitoring EIOPA
 Bonus : Interface interactive pour visualiser les taux et l'historique
 """
+import re
 from pathlib import Path
 
 import streamlit as st
@@ -50,15 +51,26 @@ if _installed_streamlit is not None and _installed_streamlit < _MIN_STREAMLIT:
     )
     st.stop()
 
-# Logo SSA Analytics — deux variantes (traits noirs / traits blancs), la même
-# icône. logo_white.svg pour les fonds sombres/colorés, logo.svg pour les
-# fonds clairs. Chargées une fois, inlinées en SVG pour rester stylables en
-# CSS (voir .eiopa-logo-light/.eiopa-logo-dark plus bas).
+# Logo SSA Invest — un seul fichier (logo-mark.svg, stroke="currentColor" :
+# voir assets/palette.md, section "Logo usage"), teinté via la couleur CSS
+# du conteneur (.eiopa-logo-hero / .eiopa-logo-footer, plus bas) plutôt que
+# via deux fichiers noir/blanc séparés — il s'inverse donc automatiquement
+# entre clair et sombre sans variante dupliquée.
 _ASSETS_DIR = Path(__file__).parent / "assets"
-LOGO_LIGHT = (_ASSETS_DIR / "logo.svg").read_text()        # traits noirs — fond clair
-LOGO_DARK = (_ASSETS_DIR / "logo_white.svg").read_text()   # traits blancs — fond sombre/coloré
+# st.markdown(..., unsafe_allow_html=True) fait quand même passer le texte
+# par un rendu Markdown avant d'injecter le HTML : le commentaire XML en tête
+# de logo-mark.svg (puces "- " au format Markdown) fuitait donc en texte
+# visible dans la page. Il faut aussi supprimer la ligne vide qu'il laisse
+# derrière lui une fois retiré : une ligne blanche à l'intérieur d'un bloc
+# HTML met fin à ce bloc pour CommonMark (règle de terminaison des blocs
+# HTML), donc le <svg> se refermait tout seul et les <path> qui suivaient
+# se retrouvaient traités comme du Markdown normal (d'où le <p> parasite
+# constaté à l'écran). On aplatit tout le SVG sur une seule ligne, une fois
+# au chargement, pour ne plus avoir de ligne blanche du tout.
+LOGO = re.sub(r"<!--.*?-->", "", (_ASSETS_DIR / "logo-mark.svg").read_text(), flags=re.DOTALL)
+LOGO = re.sub(r"\s*\n\s*", "", LOGO)
 
-# Crédit auteur (sidebar, sous "Propulsé par SSA Analytics") — à mettre à jour
+# Crédit auteur (sidebar, sous "Propulsé par SSA Invest") — à mettre à jour
 # si le rôle ou le lien LinkedIn changent.
 AUTHOR_NAME = "Slim Saanouni"
 AUTHOR_ROLE = "Fully Qualified Actuary — Actuarial Processes Automation"
@@ -75,7 +87,7 @@ _LINKEDIN_ICON = (
 # Configuration de la page
 st.set_page_config(
     page_title="EIOPA Monitoring Dashboard",
-    page_icon=str(_ASSETS_DIR / "favicon.png"),
+    page_icon=str(_ASSETS_DIR / "favicon.svg"),
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -205,10 +217,12 @@ st.markdown("""
         background-color: var(--border);
     }
 
-    /* Logo SSA Analytics */
-    /* Logo réel ~2.34:1 (large et bas) depuis son viewBox recentré — largeur
-       calée sur ce ratio pour ne pas l'écraser dans une boîte carrée. */
-    .eiopa-logo-hero { height: 72px; width: 168px; flex-shrink: 0; }
+    /* Logo SSA Invest — mark ~2.47:1 (large et bas) depuis son viewBox
+       recentré (voir assets/logo-mark.svg) — largeur calée sur ce ratio pour
+       ne pas l'écraser dans une boîte carrée. stroke="currentColor" dans le
+       SVG lui-même : la couleur vient d'ici (color:), pas d'un second
+       fichier — s'inverse donc automatiquement avec --ink-primary. */
+    .eiopa-logo-hero { height: 72px; width: 178px; flex-shrink: 0; color: var(--ink-primary); }
     .eiopa-logo-hero svg { height: 100%; width: 100%; display: block; }
 
     .eiopa-brand-credit {
@@ -217,7 +231,7 @@ st.markdown("""
         gap: 10px;
         opacity: 0.85;
     }
-    .eiopa-brand-credit .eiopa-logo-footer { height: 32px; width: 75px; flex-shrink: 0; }
+    .eiopa-brand-credit .eiopa-logo-footer { height: 32px; width: 79px; flex-shrink: 0; color: var(--ink-primary); }
     .eiopa-brand-credit .eiopa-logo-footer svg { height: 100%; width: 100%; display: block; }
     .eiopa-brand-credit span { font-size: 0.78rem; color: var(--ink-secondary); }
 
@@ -250,20 +264,12 @@ st.markdown("""
     .eiopa-author-credit .eiopa-linkedin-link:hover { text-decoration: underline; }
     .eiopa-author-credit .eiopa-linkedin-link svg { width: 14px; height: 14px; flex-shrink: 0; }
 
-    /* Variante du logo affichée selon le mode — une seule des deux existe
-       dans le DOM à la fois visuellement, l'autre est masquée. */
-    .eiopa-logo-dark-only { display: none; }
-    @media (prefers-color-scheme: dark) {
-        .eiopa-logo-light-only { display: none; }
-        .eiopa-logo-dark-only { display: block; }
-    }
-
     /* Écrans étroits (mobile/tablette) : hero empilé, logo réduit, tuiles
        moins denses — le CSS custom n'avait jusqu'ici aucun point de rupture,
        seul le thème clair/sombre était géré. */
     @media (max-width: 640px) {
         .eiopa-hero { flex-direction: column; align-items: flex-start !important; gap: 12px !important; padding: 18px 20px; }
-        .eiopa-logo-hero { height: 44px; width: 103px; }
+        .eiopa-logo-hero { height: 44px; width: 109px; }
         .eiopa-hero-title { font-size: 1.25rem; }
         .stat-tile { padding: 10px 12px; }
         .stat-tile .stat-value { font-size: 1.25rem; }
@@ -280,8 +286,7 @@ def render_hero(title: str, subtitle: str = ""):
     """
     st.markdown(f"""
     <div class="eiopa-hero" style="display:flex; align-items:center; gap:20px;" role="banner" aria-label="{title}">
-        <div class="eiopa-logo-hero eiopa-logo-light-only" aria-hidden="true">{LOGO_LIGHT}</div>
-        <div class="eiopa-logo-hero eiopa-logo-dark-only" aria-hidden="true">{LOGO_DARK}</div>
+        <div class="eiopa-logo-hero" aria-hidden="true">{LOGO}</div>
         <div>
             <p class="eiopa-hero-title">{title}</p>
             {f'<p class="eiopa-hero-sub">{subtitle}</p>' if subtitle else ''}
@@ -291,13 +296,12 @@ def render_hero(title: str, subtitle: str = ""):
 
 
 def render_brand_credit():
-    """Crédit 'Propulsé par SSA Analytics' (logo adapté au mode clair/sombre)
-    + profil auteur (nom, rôle, lien LinkedIn)."""
+    """Crédit 'Propulsé par SSA Invest' (logo adapté au mode clair/sombre via
+    currentColor) + profil auteur (nom, rôle, lien LinkedIn)."""
     st.markdown(f"""
-    <div class="eiopa-brand-credit" aria-label="Propulsé par SSA Analytics">
-        <div class="eiopa-logo-footer eiopa-logo-light-only" aria-hidden="true">{LOGO_LIGHT}</div>
-        <div class="eiopa-logo-footer eiopa-logo-dark-only" aria-hidden="true">{LOGO_DARK}</div>
-        <span>Propulsé par SSA Analytics</span>
+    <div class="eiopa-brand-credit" aria-label="Propulsé par SSA Invest">
+        <div class="eiopa-logo-footer" aria-hidden="true">{LOGO}</div>
+        <span>Propulsé par SSA Invest</span>
     </div>
     <div class="eiopa-author-credit">
         <span class="eiopa-author-name">{AUTHOR_NAME}</span>

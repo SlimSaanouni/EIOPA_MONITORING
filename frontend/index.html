@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EIOPA Risk-Free Rates Monitoring</title>
+<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+<link rel="stylesheet" href="/static/css/styles.css">
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="brand-mark brand-mark-sidebar" data-logo aria-hidden="true"></span>
+    </div>
+
+    <nav class="nav" id="nav" aria-label="Sections">
+      <a class="nav-item" href="#overview" data-page="overview">Vue d'ensemble</a>
+      <a class="nav-item" href="#update" data-page="update">Mise à jour</a>
+      <a class="nav-item" href="#historical" data-page="historical">Historique</a>
+      <a class="nav-item" href="#analysis" data-page="analysis">Analyse</a>
+      <a class="nav-item" href="#export" data-page="export">Export</a>
+    </nav>
+
+    <div class="sidebar-spacer"></div>
+
+    <div class="sidebar-section">
+      <p class="sidebar-caption">Configuration</p>
+      <p class="sidebar-line" id="cfg-country">—</p>
+      <p class="sidebar-line" id="cfg-maturities">—</p>
+    </div>
+
+    <div class="sidebar-section">
+      <p class="sidebar-line" id="cfg-instance">—</p>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="brand-credit">
+        <span class="brand-mark brand-mark-small" data-logo aria-hidden="true"></span>
+        <span>Propulsé par SSA Invest</span>
+      </div>
+      <div class="author-credit">
+        <span class="author-name">Slim Saanouni</span>
+        <span class="author-role">Fully Qualified Actuary — Actuarial Processes Automation</span>
+        <a class="author-link" href="https://www.linkedin.com/in/slim-saanouni-51a630a7/" target="_blank" rel="noopener noreferrer">LinkedIn ↗</a>
+      </div>
+      <button id="theme-toggle" class="theme-toggle" type="button">Thème clair/sombre</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="hero">
+      <span class="brand-mark brand-mark-hero" data-logo aria-hidden="true"></span>
+      <div>
+        <h1 class="hero-title">EIOPA Risk-Free Rates Monitoring</h1>
+        <p class="hero-sub" id="hero-sub">Solvency II · Taux sans risque EIOPA</p>
+      </div>
+    </header>
+
+    <section id="page-overview" class="page"></section>
+    <section id="page-update" class="page" hidden></section>
+    <section id="page-historical" class="page" hidden></section>
+    <section id="page-analysis" class="page" hidden></section>
+    <section id="page-export" class="page" hidden></section>
+  </main>
+</div>
+<script src="/static/js/app.js"></script>
+</body>
+</html>

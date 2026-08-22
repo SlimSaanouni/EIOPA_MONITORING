@@ -17,6 +17,10 @@ dependencies = [
     # st.navigation/st.Page, theme.light/theme.dark, width='stretch' —
     # absents des versions antérieures (voir le garde-fou dans app.py).
     "streamlit>=1.52.0,<2.0.0",
+    # API du dashboard web (eiopa_rfr.webapi) — sert le frontend statique
+    # (frontend/) et le JSON consommé par frontend/static/js/app.js.
+    "fastapi>=0.115.0,<1.0.0",
+    "uvicorn>=0.32.0,<1.0.0",
 ]
 
 [project.optional-dependencies]
@@ -25,6 +29,7 @@ dev = ["pytest>=8.0.0,<9.0.0"]
 [project.scripts]
 eiopa-rfr = "eiopa_rfr.main:main"
 eiopa-rfr-app = "eiopa_rfr.app:launch"
+eiopa-rfr-web = "eiopa_rfr.webapp:launch"
 
 [tool.setuptools.packages.find]
 where = ["src"]
