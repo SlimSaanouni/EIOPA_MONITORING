@@ -92,6 +92,7 @@ cat > "$TMP_SCRIPT" << 'PYTHON_SCRIPT'
 from eiopa_rfr.downloader import EIOPADownloader
 from datetime import datetime
 import json
+import sys
 
 try:
     downloader = EIOPADownloader()

@@ -14,7 +14,7 @@ echo ""
 echo "🔍 Vérification de Python..."
 if ! command -v python3 &> /dev/null; then
     echo "❌ Python 3 n'est pas installé"
-    echo "   Installez Python 3.8+ depuis https://python.org"
+    echo "   Installez Python 3.10+ depuis https://python.org"
     exit 1
 fi
 
