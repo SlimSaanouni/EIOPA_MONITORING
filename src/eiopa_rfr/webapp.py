@@ -7,14 +7,38 @@ Remplace `eiopa-rfr-app` (Streamlit, voir eiopa_rfr.app) comme interface de
 monitoring — voir frontend/ pour l'UI correspondante.
 """
 import os
+import socket
+
+
+def _find_free_port(host: str, start_port: int, max_attempts: int = 20) -> int:
+    """Retourne start_port s'il est libre, sinon le premier port libre suivant."""
+    port = start_port
+    for _ in range(max_attempts):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            try:
+                s.bind((host, port))
+                return port
+            except OSError:
+                port += 1
+    raise RuntimeError(f"Aucun port libre trouvé entre {start_port} et {port - 1}")
 
 
 def launch():
-    """Lance le serveur web. Port/host surchageables via EIOPA_WEB_PORT / EIOPA_WEB_HOST."""
+    """Lance le serveur web. Port/host surchageables via EIOPA_WEB_PORT / EIOPA_WEB_HOST.
+
+    Si le port demandé est déjà occupé (cas fréquent avec plusieurs projets
+    locaux tournant en parallèle), bascule automatiquement sur le premier
+    port libre suivant plutôt que d'échouer.
+    """
     import uvicorn
 
     host = os.environ.get("EIOPA_WEB_HOST", "127.0.0.1")
-    port = int(os.environ.get("EIOPA_WEB_PORT", "8000"))
+    requested_port = int(os.environ.get("EIOPA_WEB_PORT", "8000"))
+    port = _find_free_port(host, requested_port)
+    if port != requested_port:
+        print(f"⚠️  Port {requested_port} déjà utilisé — démarrage sur le port {port} à la place.")
+    print(f"→ Dashboard disponible sur http://{host}:{port}")
     uvicorn.run("eiopa_rfr.webapi:app", host=host, port=port, reload=False)
 
 
