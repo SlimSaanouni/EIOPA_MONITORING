@@ -66,6 +66,9 @@ logs/*.log
 .DS_Store
 Thumbs.db
 
+# direnv (activation auto du venv, propre à la machine)
+.envrc
+
 # Coverage reports
 htmlcov/
 .tox/
