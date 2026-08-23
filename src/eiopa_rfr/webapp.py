@@ -8,6 +8,9 @@ monitoring — voir frontend/ pour l'UI correspondante.
 """
 import os
 import socket
+import threading
+import time
+import webbrowser
 
 
 def _find_free_port(host: str, start_port: int, max_attempts: int = 20) -> int:
@@ -22,6 +25,22 @@ def _find_free_port(host: str, start_port: int, max_attempts: int = 20) -> int:
             except OSError:
                 port += 1
     raise RuntimeError(f"Aucun port libre trouvé entre {start_port} et {port - 1}")
+
+
+def _wait_and_open_browser(host: str, port: int, timeout: float = 10.0) -> None:
+    """Attend que le serveur accepte les connexions, puis ouvre le navigateur.
+
+    Tourne dans un thread à part pendant que uvicorn.run() bloque le thread
+    principal — évite d'ouvrir le navigateur avant que le serveur ne réponde.
+    """
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        try:
+            with socket.create_connection((host, port), timeout=0.5):
+                webbrowser.open(f"http://{host}:{port}")
+                return
+        except OSError:
+            time.sleep(0.2)
 
 
 def launch():
@@ -39,6 +58,13 @@ def launch():
     if port != requested_port:
         print(f"⚠️  Port {requested_port} déjà utilisé — démarrage sur le port {port} à la place.")
     print(f"→ Dashboard disponible sur http://{host}:{port}")
+
+    # Même sémantique que READONLY_DASHBOARD dans webapi.py : sur une instance
+    # hébergée en lecture seule, il n'y a pas de navigateur local à ouvrir.
+    readonly = os.environ.get("READONLY_DASHBOARD", "").strip().lower() in ("1", "true", "yes")
+    if not readonly:
+        threading.Thread(target=_wait_and_open_browser, args=(host, port), daemon=True).start()
+
     uvicorn.run("eiopa_rfr.webapi:app", host=host, port=port, reload=False)
 
 
