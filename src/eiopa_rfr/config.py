@@ -5,6 +5,8 @@ import os
 from pathlib import Path
 from datetime import datetime
 
+from eiopa_rfr.paths import DB_SCHEMA_FILE, HISTORICAL_DB  # réexportés, voir paths.py
+
 
 def _env_int(name: str, default: int) -> int:
     """Lit un entier depuis une variable d'environnement, avec repli sur `default` si absente/invalide."""
@@ -35,8 +37,6 @@ HISTORICAL_FILE    = DATA_DIR / "historical.csv"      # export lisible régéné
 LATEST_REPORT_FILE = DATA_DIR / "latest_report.txt"
 
 # ==================== BASE DE DONNÉES ====================
-HISTORICAL_DB   = DATA_DIR / "historical.db"           # source de vérité
-DB_SCHEMA_FILE  = Path(__file__).parent / "schema.sql"  # colocalisé avec config.py dans le package
 DB_BACKUP_DIR   = DATA_DIR / "db_backups"
 DB_BACKUP_KEEP  = _env_int("EIOPA_DB_BACKUP_KEEP", 14)  # nombre de jours distincts conservés (1 backup/jour max)
 

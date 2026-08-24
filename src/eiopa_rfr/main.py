@@ -1,9 +1,92 @@
 """
 Script principal pour le monitoring mensuel EIOPA
 """
+import json
+import sys
+
+
+def _health_check() -> dict:
+    """
+    Health-check "cockpit-ready" : contrat partagé avec les 3 autres modules
+    orchestrés en subprocess (boîte noire) par alm_cockpit. Doit rester <1s
+    et n'écrire aucun fichier — volontairement limité au stdlib + eiopa_rfr,
+    sans importer pandas/requests/bs4 (downloader/ingestion/analyzer), qui
+    alourdiraient le budget de temps et déclencheraient setup_logging()
+    (FileHandler -> écriture sur disque) dès l'import de ce module.
+    """
+    from importlib.metadata import PackageNotFoundError, version as _pkg_version
+
+    def _error(detail: str) -> dict:
+        return {"status": "error", "module": "eiopa_rfr", "version": None, "detail": detail}
+
+    try:
+        import eiopa_rfr  # noqa: F401
+    except Exception as e:
+        return _error(f"import eiopa_rfr impossible : {e}")
+
+    try:
+        pkg_version = _pkg_version("eiopa-rfr-monitoring")
+    except PackageNotFoundError as e:
+        return _error(f"package non installé : {e}")
+
+    try:
+        import sqlite3
+        # eiopa_rfr.paths (pas eiopa_rfr.config) : config.py crée data/raw/,
+        # data/processed/, logs/ et data/db_backups/ à l'import (mkdir), ce
+        # qui romprait le "aucune écriture" sur un clone tout juste cloné où
+        # ces dossiers n'existent pas encore (seul data/ est suivi par git,
+        # via historical.db/historical.csv).
+        from eiopa_rfr.paths import DB_SCHEMA_FILE, HISTORICAL_DB
+
+        if not DB_SCHEMA_FILE.exists():
+            return _error(f"schema.sql introuvable : {DB_SCHEMA_FILE}")
+        schema_sql = DB_SCHEMA_FILE.read_text(encoding="utf-8")
+
+        if HISTORICAL_DB.exists():
+            # mode=ro seul ne suffit pas : le schéma active PRAGMA journal_mode
+            # = WAL, et SQLite crée quand même historical.db-wal/-shm à
+            # l'ouverture pour rester cohérent avec un éventuel autre writer.
+            # immutable=1 indique que le fichier ne changera pas pendant la
+            # connexion : aucun fichier -wal/-shm n'est créé.
+            conn = sqlite3.connect(f"file:{HISTORICAL_DB}?mode=ro&immutable=1", uri=True)
+            try:
+                tables = {
+                    row[0] for row in conn.execute(
+                        "SELECT name FROM sqlite_master WHERE type='table'"
+                    ).fetchall()
+                }
+            finally:
+                conn.close()
+            missing = {"curves", "curve_metadata", "ingestion_runs"} - tables
+            if missing:
+                return _error(f"tables manquantes dans historical.db : {', '.join(sorted(missing))}")
+        else:
+            # Base pas encore créée : on vérifie que le schéma est initialisable
+            # sur une DB en mémoire, sans jamais toucher le disque.
+            conn = sqlite3.connect(":memory:")
+            try:
+                conn.executescript(schema_sql)
+            finally:
+                conn.close()
+    except Exception as e:
+        return _error(f"DB/schema inaccessible : {e}")
+
+    return {"status": "ok", "module": "eiopa_rfr", "version": pkg_version, "detail": ""}
+
+
+if "--health" in sys.argv:
+    # Interception avant les imports lourds ci-dessous (pandas, requests...) et
+    # avant setup_logging() (ouvre un FileHandler sur logs/) : les deux
+    # casseraient le contrat "<1s, aucune écriture" du health-check si on les
+    # laissait s'exécuter en premier, comme le ferait un `import eiopa_rfr.main`
+    # classique (c'est ainsi que le point d'entrée `eiopa-rfr` charge ce module).
+    _result = _health_check()
+    print(json.dumps(_result))
+    sys.exit(0 if _result["status"] == "ok" else 1)
+
+
 import argparse
 from datetime import datetime
-import sys
 
 from eiopa_rfr.config import LATEST_REPORT_FILE
 from eiopa_rfr.downloader import EIOPADownloader
@@ -264,7 +347,23 @@ Exemples d'utilisation:
         help="Type de courbe à exporter avec --export (défaut : BOTH)"
     )
 
+    parser.add_argument(
+        '--health',
+        action='store_true',
+        help="Health-check rapide (<1s, aucune écriture) pour supervision externe "
+             "(ex. alm_cockpit) — affiche un JSON {status, module, version, detail} "
+             "sur stdout et sort en code 0/1. Interceptée avant le parsing normal ; "
+             "présente ici pour --help et par défense en profondeur."
+    )
+
     args = parser.parse_args()
+
+    # Mode health (normalement déjà intercepté plus haut avant les imports
+    # lourds — ce garde-fou ne joue que si main() est appelé directement)
+    if args.health:
+        result = _health_check()
+        print(json.dumps(result))
+        sys.exit(0 if result["status"] == "ok" else 1)
 
     # Mode listing
     if args.list:
