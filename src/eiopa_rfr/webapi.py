@@ -10,6 +10,7 @@ pour le détail des appels correspondant à chaque route.
 import os
 import re
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import List, Optional
 
 import pandas as pd
@@ -20,7 +21,7 @@ from pydantic import BaseModel
 
 from eiopa_rfr import db
 from eiopa_rfr.analyzer import EIOPAAnalyzer
-from eiopa_rfr.config import BASE_DIR, PROCESSED_DIR, TARGET_COUNTRY, TARGET_MATURITIES
+from eiopa_rfr.config import PROCESSED_DIR, TARGET_COUNTRY, TARGET_MATURITIES
 from eiopa_rfr.downloader import EIOPADownloader
 from eiopa_rfr.exporter import available_export_dates, export_curve_csv
 from eiopa_rfr.ingestion import ingest_zip
@@ -29,7 +30,14 @@ from eiopa_rfr.utils import setup_logging
 
 logger = setup_logging()
 
-FRONTEND_DIR = BASE_DIR / "frontend"
+# frontend/ et assets/ vivent sous src/eiopa_rfr/ (et non à la racine du
+# dépôt) précisément pour pouvoir être embarqués dans le package (voir
+# [tool.setuptools.package-data] dans pyproject.toml) : StaticFiles a besoin
+# de ces dossiers sur disque au démarrage, y compris en install standalone
+# (non-éditable), où il n'existe pas de checkout git à côté du code.
+_PACKAGE_DIR = Path(__file__).resolve().parent
+FRONTEND_DIR = _PACKAGE_DIR / "frontend"
+ASSETS_DIR = _PACKAGE_DIR / "assets"
 
 # Même sémantique que READONLY_DASHBOARD côté Streamlit (st.secrets), mais
 # lue depuis l'environnement — plus simple à régler sur une instance hébergée
@@ -325,5 +333,5 @@ def download_export(filename: str):
 # sur ces montages, qui doivent donc rester en dernier.
 # ---------------------------------------------------------------------------
 
-app.mount("/assets", StaticFiles(directory=BASE_DIR / "assets"), name="assets")
+app.mount("/assets", StaticFiles(directory=ASSETS_DIR), name="assets")
 app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")

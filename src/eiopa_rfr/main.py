@@ -31,11 +31,12 @@ def _health_check() -> dict:
 
     try:
         import sqlite3
-        # eiopa_rfr.paths (pas eiopa_rfr.config) : config.py crée data/raw/,
-        # data/processed/, logs/ et data/db_backups/ à l'import (mkdir), ce
-        # qui romprait le "aucune écriture" sur un clone tout juste cloné où
-        # ces dossiers n'existent pas encore (seul data/ est suivi par git,
-        # via historical.db/historical.csv).
+        # eiopa_rfr.paths (pas eiopa_rfr.config) : paths.py n'a aucun effet de
+        # bord à l'import (pas de mkdir), et surtout ne déclenche pas la
+        # résolution de la racine du dépôt que fait config.py pour DATA_DIR et
+        # consorts — HISTORICAL_DB (voir paths.py) reste utilisable même hors
+        # checkout (install non-éditable), ce qui n'est pas garanti pour
+        # config.py.
         from eiopa_rfr.paths import DB_SCHEMA_FILE, HISTORICAL_DB
 
         if not DB_SCHEMA_FILE.exists():

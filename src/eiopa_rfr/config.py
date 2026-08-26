@@ -2,10 +2,9 @@
 Configuration centralisée pour le système de monitoring EIOPA
 """
 import os
-from pathlib import Path
 from datetime import datetime
 
-from eiopa_rfr.paths import DB_SCHEMA_FILE, HISTORICAL_DB  # réexportés, voir paths.py
+from eiopa_rfr.paths import BASE_DIR, DB_SCHEMA_FILE, HISTORICAL_DB  # réexportés, voir paths.py
 
 
 def _env_int(name: str, default: int) -> int:
@@ -19,28 +18,27 @@ def _env_int(name: str, default: int) -> int:
         return default
 
 # ==================== CHEMINS ====================
-# BASE_DIR = racine du dépôt (data/, logs/, assets/, .streamlit/ y vivent),
-# pas le dossier du package : config.py est maintenant à src/eiopa_rfr/,
-# deux niveaux sous la racine.
-BASE_DIR      = Path(__file__).resolve().parents[2]
+# BASE_DIR (voir paths.py) = racine du dépôt en install éditable (data/, logs/
+# y vivent), ou un répertoire de données par utilisateur en install
+# standalone. Les dossiers ci-dessous ne sont PAS créés ici : chaque module
+# qui écrit réellement dedans (downloader, ingestion, utils.setup_logging...)
+# fait le mkdir() au premier usage — les créer à l'import romprait un import
+# passif (ex. --health) et, en install non-éditable sans droit d'écriture,
+# ferait planter n'importe quel `import eiopa_rfr.config` avant même d'avoir
+# tenté quoi que ce soit.
 DATA_DIR      = BASE_DIR / "data"
 RAW_DIR       = DATA_DIR / "raw"
 EXTRACTS_DIR  = DATA_DIR / "extracts"
 PROCESSED_DIR = DATA_DIR / "processed"
 LOG_DIR       = BASE_DIR / "logs"
 
-for directory in [DATA_DIR, RAW_DIR, PROCESSED_DIR, LOG_DIR]:
-    directory.mkdir(parents=True, exist_ok=True)
-
 # ==================== FICHIERS ====================
 HISTORICAL_FILE    = DATA_DIR / "historical.csv"      # export lisible régénéré depuis la base — plus la source de vérité
 LATEST_REPORT_FILE = DATA_DIR / "latest_report.txt"
 
 # ==================== BASE DE DONNÉES ====================
-DB_BACKUP_DIR   = DATA_DIR / "db_backups"
+DB_BACKUP_DIR   = DATA_DIR / "db_backups"              # créé par db.py au premier backup, voir DB_BACKUP_DIR.mkdir() là-bas
 DB_BACKUP_KEEP  = _env_int("EIOPA_DB_BACKUP_KEEP", 14)  # nombre de jours distincts conservés (1 backup/jour max)
-
-DB_BACKUP_DIR.mkdir(parents=True, exist_ok=True)
 
 # ==================== EIOPA ====================
 EIOPA_BASE_URL    = "https://www.eiopa.europa.eu"

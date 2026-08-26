@@ -73,6 +73,7 @@ def _find_excel_in_zip(zip_path: Path) -> Optional[str]:
 
 def _extract_excel(zip_path: Path, excel_filename: str) -> Path:
     output_path = EXTRACTS_DIR / Path(excel_filename).name
+    EXTRACTS_DIR.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(zip_path, "r") as zf:
         with zf.open(excel_filename) as src, open(output_path, "wb") as dst:
             dst.write(src.read())

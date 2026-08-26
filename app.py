@@ -10,6 +10,7 @@ import pandas as pd
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
 
+import eiopa_rfr
 from eiopa_rfr.config import TARGET_COUNTRY, TARGET_MATURITIES
 from eiopa_rfr.analyzer import EIOPAAnalyzer
 from eiopa_rfr.downloader import EIOPADownloader
@@ -56,7 +57,10 @@ if _installed_streamlit is not None and _installed_streamlit < _MIN_STREAMLIT:
 # du conteneur (.eiopa-logo-hero / .eiopa-logo-footer, plus bas) plutôt que
 # via deux fichiers noir/blanc séparés — il s'inverse donc automatiquement
 # entre clair et sombre sans variante dupliquée.
-_ASSETS_DIR = Path(__file__).parent / "assets"
+# assets/ vit sous src/eiopa_rfr/ (embarqué dans le package, voir webapi.py) —
+# ce module reste à la racine du dépôt (convention Streamlit), donc chemin
+# relatif au package plutôt qu'à __file__.
+_ASSETS_DIR = Path(eiopa_rfr.__file__).resolve().parent / "assets"
 # st.markdown(..., unsafe_allow_html=True) fait quand même passer le texte
 # par un rendu Markdown avant d'injecter le HTML : le commentaire XML en tête
 # de logo-mark.svg (puces "- " au format Markdown) fuitait donc en texte

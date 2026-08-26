@@ -21,6 +21,7 @@ def setup_logging(log_file: Path = LOG_FILE) -> logging.Logger:
 
     fmt = logging.Formatter(LOG_FORMAT, LOG_DATE_FORMAT)
 
+    log_file.parent.mkdir(parents=True, exist_ok=True)
     fh = logging.FileHandler(log_file, encoding="utf-8")
     fh.setLevel(logging.INFO)
     fh.setFormatter(fmt)

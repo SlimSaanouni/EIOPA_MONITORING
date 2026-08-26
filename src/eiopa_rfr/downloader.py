@@ -148,6 +148,7 @@ class EIOPADownloader:
             Chemin du fichier téléchargé ou None
         """
         output_path = output_dir / filename
+        output_dir.mkdir(parents=True, exist_ok=True)
 
         # Vérifier si le fichier existe déjà
         if output_path.exists() and not force:

@@ -21,6 +21,9 @@ dependencies = [
     # (frontend/) et le JSON consommé par frontend/static/js/app.js.
     "fastapi>=0.115.0,<1.0.0",
     "uvicorn>=0.32.0,<1.0.0",
+    # Répertoire de données par utilisateur pour historical.db en install
+    # standalone (hors checkout git) — voir eiopa_rfr.paths.find_repo_root().
+    "platformdirs>=4.0.0,<5.0.0",
 ]
 
 [project.optional-dependencies]
@@ -35,7 +38,10 @@ eiopa-rfr-web = "eiopa_rfr.webapp:launch"
 where = ["src"]
 
 [tool.setuptools.package-data]
-eiopa_rfr = ["schema.sql"]
+# frontend/ et assets/ servent eiopa-rfr-web (StaticFiles, voir webapi.py) :
+# sans eux dans le wheel, la commande crashe au démarrage dès qu'installée
+# hors checkout (StaticFiles pointerait sur un dossier absent du package).
+eiopa_rfr = ["schema.sql", "frontend/**/*", "assets/**/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

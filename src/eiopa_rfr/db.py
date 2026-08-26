@@ -18,22 +18,46 @@ from eiopa_rfr.utils import setup_logging
 logger = setup_logging()
 
 
+def _run_schema(conn: sqlite3.Connection, schema_file: Path) -> None:
+    with open(schema_file, "r", encoding="utf-8") as f:
+        conn.executescript(f.read())
+    conn.commit()
+
+
 def get_connection(db_path: Path = HISTORICAL_DB) -> sqlite3.Connection:
-    """Ouvre une connexion avec row_factory dict-like et clés étrangères actives."""
+    """Ouvre une connexion avec row_factory dict-like et clés étrangères actives.
+
+    sqlite3.connect() ne crée pas le dossier parent : nécessaire en install
+    standalone, où HISTORICAL_DB pointe vers un répertoire de données par
+    utilisateur qui n'existe pas encore avant la première connexion (voir
+    eiopa_rfr.paths.BASE_DIR) — en checkout, data/ existe déjà (suivi par
+    git), donc sans effet.
+
+    Initialise aussi le schéma si la table `curves` est absente (base neuve,
+    ou fichier créé vide par une connexion sqlite3 précédente) : en checkout,
+    historical.db est déjà versionné avec son schéma, donc sans effet ;
+    ailleurs (install standalone), rien d'autre n'appelle init_schema() dans
+    le flux applicatif normal (main.py, webapi.py) avant la première requête.
+    """
+    db_path.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
+    has_schema = conn.execute(
+        "SELECT 1 FROM sqlite_master WHERE type='table' AND name='curves'"
+    ).fetchone()
+    if not has_schema:
+        _run_schema(conn, DB_SCHEMA_FILE)
     return conn
 
 
 def init_schema(db_path: Path = HISTORICAL_DB, schema_file: Path = DB_SCHEMA_FILE) -> None:
-    """Crée les tables si elles n'existent pas (idempotent)."""
-    with open(schema_file, "r", encoding="utf-8") as f:
-        schema_sql = f.read()
+    """Crée les tables si elles n'existent pas (idempotent). get_connection()
+    le fait déjà automatiquement pour DB_SCHEMA_FILE ; utile surtout pour un
+    schema_file différent ou pour forcer l'application explicitement."""
     conn = get_connection(db_path)
     try:
-        conn.executescript(schema_sql)
-        conn.commit()
+        _run_schema(conn, schema_file)
         logger.info(f"Schéma initialisé : {db_path}")
     finally:
         conn.close()
