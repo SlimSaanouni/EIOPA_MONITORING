@@ -27,3 +27,79 @@ jobs:
 
       - name: Run tests
         run: pytest tests/ -v
+
+  non-editable-install:
+    # Garde-fou contre les régressions de portabilité des chemins (voir
+    # eiopa_rfr.paths.find_repo_root()) : installe le package en mode
+    # NON-éditable (pip install ., pas -e .), dans un venv hors du checkout,
+    # puis exécute le CLI depuis un cwd sans rapport avec le dépôt. C'est
+    # exactement le scénario qui avait déjà cassé silencieusement des chemins
+    # calculés via Path(__file__).parents[N]/relatifs au cwd plutôt que via
+    # une racine résolue avec repli explicite (commit "FIX: portabilité des
+    # chemins — install non-éditable"). Rien ne garantissait jusqu'ici que ça
+    # ne régresse pas à un futur commit.
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Installer le package en mode non-éditable, dans un venv hors du checkout
+        run: |
+          python -m venv /tmp/non-editable-venv
+          /tmp/non-editable-venv/bin/pip install --upgrade pip
+          /tmp/non-editable-venv/bin/pip install "${GITHUB_WORKSPACE}"
+
+      - name: Health-check (--health) depuis un cwd sans rapport avec le dépôt
+        run: |
+          mkdir -p /tmp/non-editable-cwd
+          cd /tmp/non-editable-cwd
+          /tmp/non-editable-venv/bin/eiopa-rfr --health | tee /tmp/health.json
+          python3 -c "
+          import json
+          d = json.load(open('/tmp/health.json'))
+          assert d['status'] == 'ok', d
+          "
+
+      - name: CLI --stats depuis un cwd sans rapport avec le dépôt
+        run: |
+          cd /tmp/non-editable-cwd
+          /tmp/non-editable-venv/bin/eiopa-rfr --stats
+
+      - name: Dashboard web (eiopa-rfr-web) — démarrage, health-check HTTP, arrêt
+        run: |
+          cd /tmp/non-editable-cwd
+          export READONLY_DASHBOARD=true
+          export EIOPA_WEB_HOST=127.0.0.1
+          export EIOPA_WEB_PORT=8123
+
+          /tmp/non-editable-venv/bin/eiopa-rfr-web > /tmp/web.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+
+          ok=""
+          for i in $(seq 1 30); do
+            if curl -fsS "http://127.0.0.1:8123/api/config" -o /tmp/config.json; then
+              ok=1
+              break
+            fi
+            sleep 1
+          done
+
+          if [ -z "$ok" ]; then
+            echo "::error::eiopa-rfr-web n'a jamais répondu sur /api/config"
+            cat /tmp/web.log
+            exit 1
+          fi
+
+          cat /tmp/config.json
+          python3 -c "
+          import json
+          d = json.load(open('/tmp/config.json'))
+          assert 'country' in d and 'maturities' in d, d
+          "
+          # Le trap EXIT ci-dessus arrête le serveur en sortie de step, succès ou échec.
