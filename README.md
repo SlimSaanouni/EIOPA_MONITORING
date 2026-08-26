@@ -237,3 +237,9 @@ La page "📤 Export" reste disponible sur l'instance hébergée : elle ne fait 
 - **Dates de publication** : l'EIOPA publie les données du mois M entre le 5 et le 10 du mois M+1.
 - **Historique** : `data/historical.db` est la source de vérité — à versionner et sauvegarder régulièrement (des sauvegardes horodatées locales sont aussi créées automatiquement dans `data/db_backups/` avant chaque écriture).
 - **Choix NO_VA/WITH_VA à l'export** : jamais décidé par cet outil — la convention à appliquer selon l'outil consommateur (GSE, Asset_PTF, ou futur outil) est une décision méthodologique à documenter séparément.
+
+---
+
+## Licence
+
+Tous droits réservés — voir [LICENSE](LICENSE). Dépôt public à titre de consultation (portfolio / démonstration) ; aucune réutilisation sans autorisation de l'auteur.

@@ -6,6 +6,11 @@ build-backend = "setuptools.build_meta"
 name = "eiopa-rfr-monitoring"
 version = "2.0.0"
 description = "Monitoring des taux sans risque EIOPA (Solvency II) — ingestion, historique, export vers GSE/Asset_PTF"
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [
+    { name = "Slim Saanouni" },
+]
 requires-python = ">=3.10"
 dependencies = [
     "pandas>=2.3.0,<3.0.0",

@@ -101,7 +101,7 @@ data/
 
 ## Déploiement hébergé (Streamlit Community Cloud)
 
-L'instance hébergée est en lecture seule par nature (disque éphémère) : la production reste locale (`main.py` ou dashboard local), suivie d'un `git push` de `historical.db`. Détails et activation du mode lecture seule → `README.md`, section "Déploiement".
+L'instance hébergée est en lecture seule par nature (disque éphémère) : la production reste locale (`main.py` ou dashboard local), suivie d'un `git push` de `historical.db`. Détails et activation du mode lecture seule → `../README.md`, section "Déploiement".
 
 ---
 
@@ -112,4 +112,4 @@ Consulter les logs :
 logs/eiopa_monitoring_YYYYMM.log
 ```
 
-Documentation complète → `README.md`
+Documentation complète → `../README.md`
