@@ -6,6 +6,7 @@ la fois le JSON et le frontend statique (frontend/), via uvicorn.
 Remplace `eiopa-rfr-app` (Streamlit, voir eiopa_rfr.app) comme interface de
 monitoring — voir frontend/ pour l'UI correspondante.
 """
+import argparse
 import os
 import socket
 import threading
@@ -43,6 +44,14 @@ def _wait_and_open_browser(host: str, port: int, timeout: float = 10.0) -> None:
             time.sleep(0.2)
 
 
+def _parse_args(argv=None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Lance le dashboard web d'EIOPA_RFR (API FastAPI + frontend statique).")
+    parser.add_argument("--no-browser", action="store_true",
+                        help="Ne pas ouvrir le navigateur automatiquement")
+    return parser.parse_args(argv)
+
+
 def launch():
     """Lance le serveur web. Port/host surchageables via EIOPA_WEB_PORT / EIOPA_WEB_HOST.
 
@@ -51,6 +60,8 @@ def launch():
     port libre suivant plutôt que d'échouer.
     """
     import uvicorn
+
+    args = _parse_args()
 
     host = os.environ.get("EIOPA_WEB_HOST", "127.0.0.1")
     requested_port = int(os.environ.get("EIOPA_WEB_PORT", "8000"))
@@ -62,7 +73,7 @@ def launch():
     # Même sémantique que READONLY_DASHBOARD dans webapi.py : sur une instance
     # hébergée en lecture seule, il n'y a pas de navigateur local à ouvrir.
     readonly = os.environ.get("READONLY_DASHBOARD", "").strip().lower() in ("1", "true", "yes")
-    if not readonly:
+    if not readonly and not args.no_browser:
         threading.Thread(target=_wait_and_open_browser, args=(host, port), daemon=True).start()
 
     uvicorn.run("eiopa_rfr.webapi:app", host=host, port=port, reload=False)
