@@ -85,5 +85,3 @@ BPS_CONVERSION      = 10000
 # ==================== VALIDATION ====================
 MIN_RATE = -0.05
 MAX_RATE =  0.15
-MIN_VA   =  0.0
-MAX_VA   =  0.02

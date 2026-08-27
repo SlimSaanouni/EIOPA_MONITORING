@@ -151,7 +151,7 @@ def get_available_updates():
         downloader = EIOPADownloader()
         available_files = downloader.get_available_files()
     except Exception as e:
-        raise HTTPException(status_code=502, detail=f"Impossible de contacter l'EIOPA : {e}")
+        raise HTTPException(status_code=502, detail=f"Impossible de contacter l'EIOPA : {e}") from e
 
     files = []
     for filename, url, file_date in available_files:

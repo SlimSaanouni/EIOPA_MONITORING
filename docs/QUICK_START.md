@@ -13,15 +13,22 @@ pip install -r requirements.txt
 ### 2. Lancer le dashboard
 
 ```bash
+./run_web.sh   # Dashboard web (FastAPI + frontend statique) — recommandé
+```
+
+→ Ouvre `http://127.0.0.1:8000` dans le navigateur (bascule sur un autre port si occupé).
+
+Alternative Streamlit (legacy, nécessite un checkout git) :
+```bash
 ./run.sh      # Linux / Mac
 run.bat        # Windows
 ```
 
-→ Ouvre `http://localhost:8501` dans le navigateur. `run.sh`/`run.bat` appellent directement `venv/bin/streamlit`, sans dépendre du `PATH` — évite de lancer l'app par erreur avec un autre Streamlit installé ailleurs sur la machine.
+→ Ouvre `http://localhost:8501`. `run.sh`/`run.bat` appellent directement `venv/bin/streamlit`, sans dépendre du `PATH` — évite de lancer l'app par erreur avec un autre Streamlit installé ailleurs sur la machine.
 
 ### 3. Ingérer les données
 
-Dans le dashboard, aller dans **🔄 Mise à jour** :
+Dans le dashboard, aller dans la page **Mise à jour** (🔄 sous Streamlit) :
 - Les dates disponibles sur le site EIOPA s'affichent automatiquement, avec leur statut ("Déjà traité" / "À télécharger")
 - Sélectionner les mois souhaités
 - Cliquer sur **Lancer le téléchargement**
@@ -30,7 +37,7 @@ Chaque mois ingéré est écrit dans `data/historical.db` (courbes complètes 0-
 
 ### 4. Exporter pour le GSE / Asset_PTF
 
-Aller dans **📤 Export** :
+Aller dans la page **Export** (📤 sous Streamlit) :
 - Choisir la date de clôture et le type de courbe (NO_VA / WITH_VA / les deux)
 - Cliquer sur **Générer l'export**, puis télécharger le(s) CSV produit(s)
 

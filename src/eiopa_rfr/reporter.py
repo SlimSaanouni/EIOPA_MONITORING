@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Dict, Optional
 from datetime import datetime
 
+from eiopa_rfr.config import ALERT_THRESHOLD_MOM, ALERT_THRESHOLD_YTD
 from eiopa_rfr.utils import setup_logging, format_bps, format_rate_pct
 
 logger = setup_logging()
@@ -105,7 +106,7 @@ class EIOPAReporter:
             lines.append("Variation des taux (en points de base):")
             for maturity in sorted([k for k in analysis['changes_mom'] if k != 'va']):
                 change = analysis['changes_mom'][maturity]
-                indicator = "🔴" if abs(change) >= 50 else "🟢"
+                indicator = "🔴" if abs(change) >= ALERT_THRESHOLD_MOM else "🟢"
                 lines.append(f"  {indicator} Taux {maturity:2d}Y : {format_bps(change)}")
             
             if 'va' in analysis['changes_mom']:
@@ -128,7 +129,7 @@ class EIOPAReporter:
             lines.append("Variation des taux (en points de base):")
             for maturity in sorted([k for k in analysis['changes_ytd'] if k != 'va']):
                 change = analysis['changes_ytd'][maturity]
-                indicator = "🔴" if abs(change) >= 100 else "🟢"
+                indicator = "🔴" if abs(change) >= ALERT_THRESHOLD_YTD else "🟢"
                 lines.append(f"  {indicator} Taux {maturity:2d}Y : {format_bps(change)}")
             
             if 'va' in analysis['changes_ytd']:
@@ -314,7 +315,3 @@ class EIOPAReporter:
         """
         report = EIOPAReporter.generate_text_report(analysis)
         print(report)
-
-
-# Pas de pipeline de test ici : main.py est le point d'entrée CLI canonique
-# (téléchargement -> ingestion -> analyse -> rapports).

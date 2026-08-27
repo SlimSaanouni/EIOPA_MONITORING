@@ -19,10 +19,13 @@ EIOPA_RFR/
 ├── requirements.txt        # -e . (compatibilité outils qui cherchent un requirements.txt, ex. SCC)
 ├── main.py                 # Point d'entrée CLI — délègue à eiopa_rfr.main
 ├── app.py                  # Dashboard Streamlit — importe depuis eiopa_rfr
-├── run.sh / run.bat        # Lancement via venv/bin/streamlit directement (voir Dépannage)
+├── run.sh / run.bat        # Lance le dashboard Streamlit via venv/bin/streamlit (voir Dépannage)
+├── run_web.sh              # Lance le dashboard web (FastAPI + frontend statique)
+├── scripts/                # install.sh, bulk_download.sh — voir leur --help
 │
 ├── src/eiopa_rfr/
 │   ├── config.py            # Tous les paramètres centralisés
+│   ├── paths.py             # Racine du dépôt / répertoire de données par utilisateur, sans effet de bord
 │   ├── downloader.py        # Téléchargement depuis le site EIOPA
 │   ├── ingestion.py         # Extraction Excel -> écriture SQLite (courbes + métadonnées)
 │   ├── exporter.py          # Génération des CSV Maturity,Base,Up,Down (GSE / Asset_PTF)
@@ -30,7 +33,11 @@ EIOPA_RFR/
 │   ├── schema.sql           # Définition des tables curves / curve_metadata / ingestion_runs
 │   ├── analyzer.py          # Comparaisons M/M, YTD, alertes (lecture seule sur la base)
 │   ├── reporter.py          # Rapports texte / CSV / Excel
-│   └── utils.py             # Fonctions utilitaires partagées
+│   ├── utils.py             # Fonctions utilitaires partagées
+│   ├── webapi.py            # API FastAPI du dashboard web (JSON + sert frontend/ et assets/)
+│   ├── webapp.py            # Point d'entrée de `eiopa-rfr-web` — lance webapi.py via uvicorn
+│   ├── frontend/            # SPA statique (HTML/CSS/JS sans framework) consommant webapi.py
+│   └── assets/              # Logo et favicon partagés par le frontend
 │
 ├── tests/                   # pytest — voir section Tests
 │
@@ -74,7 +81,22 @@ Couvre la logique la plus critique : formule des chocs IR, contraintes du schém
 
 ## Utilisation
 
-### Dashboard interactif (recommandé)
+### Dashboard web (FastAPI, recommandé)
+
+```bash
+./run_web.sh
+```
+
+Lance `eiopa_rfr.webapi:app` (FastAPI) via uvicorn, et sert le frontend statique (`src/eiopa_rfr/frontend/`) sur `http://127.0.0.1:8000` (bascule automatiquement sur le premier port libre suivant si occupé ; port/host surchargeables via `EIOPA_WEB_PORT`/`EIOPA_WEB_HOST`). Le navigateur s'ouvre automatiquement (`--no-browser` pour désactiver).
+
+Équivalent une fois le venv activé, fonctionne depuis n'importe quel répertoire, y compris en install standalone (hors checkout git) :
+```bash
+eiopa-rfr-web [--no-browser]
+```
+
+Même contenu fonctionnel que le dashboard Streamlit ci-dessous (vue d'ensemble, mise à jour, historique, analyse, export). `READONLY_DASHBOARD=1` (variable d'environnement) passe l'instance en lecture seule, comme pour Streamlit — voir "Déploiement" plus bas.
+
+### Dashboard Streamlit (legacy)
 
 ```bash
 ./run.sh            # Linux / Mac
@@ -88,12 +110,12 @@ Lance directement `venv/bin/streamlit` (ou `venv\Scripts\streamlit.exe`), sans d
 source venv/bin/activate && streamlit run app.py
 ```
 
-Une fois le venv activé, la commande `eiopa-rfr-app` fait la même chose et fonctionne depuis n'importe quel répertoire (pas besoin d'être dans le dossier du projet) :
+Une fois le venv activé, la commande `eiopa-rfr-app` fait la même chose et fonctionne depuis n'importe quel répertoire (pas besoin d'être dans le dossier du projet) — mais uniquement depuis un checkout git (install éditable), contrairement à `eiopa-rfr-web` :
 ```bash
 eiopa-rfr-app
 ```
 
-Le dashboard permet de :
+Les deux dashboards permettent de :
 - Visualiser la courbe des taux actuelle et son historique
 - Télécharger un ou plusieurs mois en une seule action ("🔄 Mise à jour")
 - Comparer deux dates et détecter les alertes ("📊 Analyse")
@@ -214,6 +236,8 @@ READONLY_DASHBOARD = true
 Sans ce secret (cas par défaut, y compris en local), le dashboard reste pleinement fonctionnel — c'est un opt-in explicite pour l'instance hébergée, pas un comportement déduit automatiquement de l'environnement.
 
 La page "📤 Export" reste disponible sur l'instance hébergée : elle ne fait que lire `historical.db` (déjà à jour via le push git) et proposer un téléchargement, sans écriture serveur persistante.
+
+Pour `eiopa-rfr-web` sur un autre hébergeur, le même effet s'obtient en définissant directement la variable d'environnement `READONLY_DASHBOARD=1` (pas de mécanisme "Secrets" spécifique à Streamlit à reproduire).
 
 ---
 

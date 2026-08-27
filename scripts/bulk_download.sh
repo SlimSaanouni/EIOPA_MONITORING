@@ -79,7 +79,7 @@ PYTHON_CMD=$(command -v python3 || command -v python)
 # Vérifier que le script main.py existe
 if [ ! -f "main.py" ]; then
     echo -e "${RED}❌ main.py introuvable${NC}"
-    echo "Assurez-vous d'exécuter ce script depuis le dossier eiopa-monitoring/"
+    echo "Assurez-vous d'exécuter ce script depuis la racine du dépôt EIOPA_RFR/"
     exit 1
 fi
 

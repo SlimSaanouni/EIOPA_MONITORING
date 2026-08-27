@@ -513,7 +513,7 @@ def show_overview():
     # remplace le rendu neutre initial).
     columns = st.columns(len(TARGET_MATURITIES) + 1)
 
-    for col, maturity in zip(columns[:-1], TARGET_MATURITIES):
+    for col, maturity in zip(columns[:-1], TARGET_MATURITIES, strict=True):
         with col:
             col_name = f'rate_{maturity}y'
             if col_name in latest_row and pd.notna(latest_row[col_name]):
