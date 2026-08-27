@@ -422,9 +422,9 @@ async function loadHistoricalSeries(maturity, start, end) {
     chartEl.innerHTML = "";
     plotTimeSeries("chart-hist", series);
 
-    let tHtml = `<table class="data-table"><thead><tr><th>Date</th><th>Taux</th></tr></thead><tbody>`;
+    let tHtml = `<table class="data-table"><thead><tr><th>Date</th><th class="num">Taux</th></tr></thead><tbody>`;
     for (let i = 0; i < series.dates.length; i++) {
-      tHtml += `<tr><td>${fmtDateFR(series.dates[i])}</td><td>${(series.rates[i] * 100).toFixed(4)}%</td></tr>`;
+      tHtml += `<tr><td>${fmtDateFR(series.dates[i])}</td><td class="num">${(series.rates[i] * 100).toFixed(4)}%</td></tr>`;
     }
     tHtml += `</tbody></table>`;
     tableEl.innerHTML = tHtml;
@@ -482,10 +482,10 @@ async function loadComparison(date1, date2) {
       { maturities: m2, rates: m2.map((m) => data.date2.rates[m]) },
     );
 
-    let tHtml = `<table class="data-table"><thead><tr><th>Maturité</th><th>Date 1</th><th>Date 2</th><th>Variation (bps)</th><th>Variation (%)</th></tr></thead><tbody>`;
+    let tHtml = `<table class="data-table"><thead><tr><th>Maturité</th><th class="num">Date 1</th><th class="num">Date 2</th><th class="num">Variation (bps)</th><th class="num">Variation (%)</th></tr></thead><tbody>`;
     for (const v of data.variations) {
       const pct = v.change_pct === null ? "—" : `${v.change_pct >= 0 ? "+" : ""}${v.change_pct.toFixed(2)}%`;
-      tHtml += `<tr><td>${v.maturity}Y</td><td>${fmtPct(v.rate1)}</td><td>${fmtPct(v.rate2)}</td><td>${fmtBps(v.change_bps)}</td><td>${pct}</td></tr>`;
+      tHtml += `<tr><td>${v.maturity}Y</td><td class="num">${fmtPct(v.rate1)}</td><td class="num">${fmtPct(v.rate2)}</td><td class="num">${fmtBps(v.change_bps)}</td><td class="num">${pct}</td></tr>`;
     }
     tHtml += `</tbody></table>`;
     tableEl.innerHTML = tHtml;
