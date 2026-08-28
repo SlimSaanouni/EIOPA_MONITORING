@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import List, Optional
 
 import pandas as pd
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -47,6 +47,27 @@ READONLY_DASHBOARD = os.environ.get("READONLY_DASHBOARD", "").strip().lower() in
 EXPORT_FILENAME_RE = re.compile(r"^RFR_\d{8}_(NO_VA|WITH_VA)\.csv$")
 
 app = FastAPI(title="EIOPA RFR Monitoring API")
+
+
+@app.middleware("http")
+async def _no_cache_frontend(request: Request, call_next) -> Response:
+    """La page et les assets statiques (JS/CSS) ne doivent jamais être
+    resservis depuis le cache du navigateur : un onglet qui recharge la page
+    doit toujours voir le code à jour, pas une version figée au premier
+    chargement — même sans hard refresh explicite.
+
+    Tout ce qui n'est pas une route /api/* passe par les mounts StaticFiles
+    (/assets/* et le mount "/" qui sert aussi index.html via html=True) : on
+    applique no-store à tout sauf /api/*, plutôt que de lister chaque chemin
+    statique. Ça laisse un endpoint comme /api/export/download/{filename}
+    (export CSV généré une fois, potentiellement volumineux) avec son
+    comportement de cache par défaut.
+    """
+    response = await call_next(request)
+    if not request.url.path.startswith("/api/"):
+        response.headers["Cache-Control"] = "no-store"
+    return response
+
 
 _analyzer = EIOPAAnalyzer()
 
