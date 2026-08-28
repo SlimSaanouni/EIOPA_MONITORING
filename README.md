@@ -141,6 +141,18 @@ python main.py --export --date 2024-11-30
 
 # Exporter uniquement WITH_VA pour la date la plus récente en base
 python main.py --export --va-type WITH_VA
+
+# Health-check rapide et non-destructif — contrat "cockpit-ready"
+# (une ligne JSON, code de sortie 0/1, aucune écriture)
+python main.py --health
+```
+
+Une fois le venv activé, la commande `eiopa-rfr` (installée par
+`pip install -r requirements.txt`) fait la même chose que
+`python main.py`, sans dépendre du dossier courant :
+
+```bash
+eiopa-rfr --health
 ```
 
 ---
