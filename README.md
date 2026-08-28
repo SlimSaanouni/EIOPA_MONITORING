@@ -195,6 +195,7 @@ Down = ROUND(base − MAX(0.00, shock_down × |base|), 5)
 | `MAX_RETRIES` | `3` | `EIOPA_MAX_RETRIES` | Tentatives avant échec sur téléchargement/scraping |
 | `HISTORICAL_DB` | `data/historical.db` | — | Base SQLite (source de vérité) |
 | `DB_BACKUP_KEEP` | `14` | `EIOPA_DB_BACKUP_KEEP` | Nombre de jours distincts de sauvegarde conservés (1 backup/jour max) |
+| `BASE_DIR` | racine du dépôt (install éditable) | `COCKPIT_STUDY_DIR` | Dossier de données à utiliser (contient `data/`, `logs/`) ; positionnée par le Cockpit pour désigner l'étude active, prioritaire sur tout le reste — voir `src/eiopa_rfr/paths.py` |
 
 Les paramètres surchargeables par variable d'environnement le sont pour permettre à une autre équipe déployant sa propre instance d'ajuster ces valeurs sans toucher au code (ex. `EIOPA_ALERT_THRESHOLD_MOM=75 streamlit run app.py`). Une valeur invalide (non numérique) retombe silencieusement sur le défaut.
 
@@ -260,6 +261,7 @@ Pour `eiopa-rfr-web` sur un autre hébergeur, le même effet s'obtient en défin
 - **Format EIOPA** : le format du fichier Excel peut évoluer. En cas de rupture, vérifier les noms d'onglets et de colonnes dans `src/eiopa_rfr/ingestion.py` (`SHEET_NAMES`, `COUNTRY_ALIASES`, `METADATA_LABELS`).
 - **Dates de publication** : l'EIOPA publie les données du mois M entre le 5 et le 10 du mois M+1.
 - **Historique** : `data/historical.db` est la source de vérité — à versionner et sauvegarder régulièrement (des sauvegardes horodatées locales sont aussi créées automatiquement dans `data/db_backups/` avant chaque écriture).
+- **Emplacement des données sous le Cockpit** : contrairement aux autres modules de l'écosystème, ce module ne se base pas sur le dossier courant au lancement pour localiser `data/` (voir `src/eiopa_rfr/paths.py`) — le Cockpit désigne l'étude active via la variable d'environnement `COCKPIT_STUDY_DIR`, prioritaire sur tout le reste.
 - **Choix NO_VA/WITH_VA à l'export** : jamais décidé par cet outil — la convention à appliquer selon l'outil consommateur (GSE, Asset_PTF, ou futur outil) est une décision méthodologique à documenter séparément.
 
 ---
