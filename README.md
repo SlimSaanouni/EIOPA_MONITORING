@@ -142,6 +142,10 @@ python main.py --export --date 2024-11-30
 # Exporter uniquement WITH_VA pour la date la plus récente en base
 python main.py --export --va-type WITH_VA
 
+# Idem, avec un résumé JSON machine-lisible (chemins réels des courbes
+# exportées, statut) — lu par les pipelines du Cockpit ALM
+python main.py --export --date 2024-11-30 --va-type NO_VA --result-json export.json
+
 # Health-check rapide et non-destructif — contrat "cockpit-ready"
 # (une ligne JSON, code de sortie 0/1, aucune écriture)
 python main.py --health
