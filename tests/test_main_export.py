@@ -42,3 +42,32 @@ def test_export_result_json_reports_missing_curve(tmp_path, monkeypatch):
     assert payload["ok"] is False
     assert payload["outputs"] == {}
     assert "Aucune courbe" in payload["error"]
+
+
+def test_available_result_json_lists_ingested_dates(tmp_path, monkeypatch):
+    from eiopa_rfr.main import list_available_curves
+    monkeypatch.setattr(exporter, "available_export_dates", lambda: ["2025-06-30", "2025-05-31"])
+    result = tmp_path / "result.json"
+
+    list_available_curves(result_json=result)
+
+    payload = json.loads(result.read_text(encoding="utf-8"))
+    assert payload["ok"] is True
+    assert payload["command"] == "eiopa-rfr --available"
+    assert payload["metrics"]["dates"] == ["2025-06-30", "2025-05-31"]
+
+
+def test_processing_result_json_reports_failure(tmp_path, monkeypatch):
+    import sys as _sys
+
+    from eiopa_rfr import main as main_module
+    monkeypatch.setattr(main_module, "run_monthly_update", lambda date, force: False)
+    result = tmp_path / "result.json"
+    monkeypatch.setattr(_sys, "argv", ["eiopa-rfr", "--date", "2025-06-30", "--result-json", str(result)])
+
+    with pytest.raises(SystemExit) as exc:
+        main_module.main()
+
+    assert exc.value.code == 1
+    payload = json.loads(result.read_text(encoding="utf-8"))
+    assert payload["ok"] is False and payload["metrics"]["date"] == "2025-06-30"

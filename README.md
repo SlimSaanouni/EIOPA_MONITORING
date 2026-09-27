@@ -142,6 +142,9 @@ python main.py --export --date 2024-11-30
 # Exporter uniquement WITH_VA pour la date la plus récente en base
 python main.py --export --va-type WITH_VA
 
+# Lister les dates déjà ingérées en base (lecture seule, sans réseau)
+python main.py --available
+
 # Idem, avec un résumé JSON machine-lisible (chemins réels des courbes
 # exportées, statut) — lu par les pipelines du Cockpit ALM
 python main.py --export --date 2024-11-30 --va-type NO_VA --result-json export.json

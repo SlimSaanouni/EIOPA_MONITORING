@@ -265,7 +265,8 @@ def _parse_date_arg(date_str: str) -> datetime:
         sys.exit(1)
 
 
-def _write_result_json(path, ok: bool, outputs=None, metrics=None, error=None) -> None:
+def _write_result_json(path, ok: bool, outputs=None, metrics=None, error=None,
+                       command: str = "eiopa-rfr --export") -> None:
     """--result-json : contrat partagé par les 4 modules du Cockpit ALM
     (SLIM, EIOPA_RFR, ESG, Asset_PTF) - {schema, module, command, ok, error,
     outputs: {nom: chemin absolu}, metrics: {nom: scalaire}}. No-op si
@@ -275,7 +276,7 @@ def _write_result_json(path, ok: bool, outputs=None, metrics=None, error=None) -
     payload = {
         "schema": 1,
         "module": "eiopa_rfr",
-        "command": "eiopa-rfr --export",
+        "command": command,
         "ok": ok,
         "error": error,
         "outputs": {k: str(Path(v).resolve()) for k, v in (outputs or {}).items()},
@@ -326,6 +327,22 @@ def export_curves(specific_date, va_type: str, result_json=None):
                        metrics={"date": specific_date.strftime("%Y-%m-%d")},
                        error="\n".join(errors) or None)
     sys.exit(exit_code)
+
+
+def list_available_curves(result_json=None):
+    """Dates de courbes déjà ingérées en base (exportables sans téléchargement),
+    lecture seule — sous le Cockpit, celles de l'étude active. Permet à un
+    pipeline de vérifier qu'une date est disponible avant de lancer quoi que
+    ce soit."""
+    from eiopa_rfr.exporter import available_export_dates
+
+    dates = available_export_dates()
+    for d in dates:
+        print(d)
+    if not dates:
+        print("Aucune courbe en base.")
+    _write_result_json(result_json, ok=True, metrics={"dates": dates},
+                       command="eiopa-rfr --available")
 
 
 def main():
@@ -383,12 +400,19 @@ Exemples d'utilisation:
     )
 
     parser.add_argument(
+        '--available',
+        action='store_true',
+        help="Lister les dates de courbes déjà ingérées en base (lecture seule, sans réseau)"
+    )
+
+    parser.add_argument(
         '--result-json',
         type=Path,
         default=None,
         metavar='CHEMIN',
-        help="Avec --export : écrit un résumé JSON machine-lisible (chemins des "
-             "courbes exportées, statut) — lu par les pipelines du Cockpit ALM"
+        help="Avec --export, --available ou le traitement d'une date : écrit un "
+             "résumé JSON machine-lisible (chemins, dates, statut) — lu par les "
+             "pipelines du Cockpit ALM"
     )
 
     parser.add_argument(
@@ -419,6 +443,11 @@ Exemples d'utilisation:
         show_historical_stats()
         return
 
+    # Mode dates disponibles
+    if args.available:
+        list_available_curves(result_json=args.result_json)
+        return
+
     # Mode export
     if args.export:
         specific_date = _parse_date_arg(args.date) if args.date else None
@@ -431,6 +460,10 @@ Exemples d'utilisation:
     # Exécuter le traitement
     success = run_monthly_update(specific_date, args.force)
 
+    _write_result_json(args.result_json, ok=success,
+                       metrics={"date": specific_date.strftime("%Y-%m-%d") if specific_date else None},
+                       error=None if success else "traitement en échec (voir le journal)",
+                       command="eiopa-rfr --date")
     sys.exit(0 if success else 1)
 
 
