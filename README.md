@@ -24,6 +24,8 @@ EIOPA_RFR/
 ├── scripts/                # install.sh, bulk_download.sh — voir leur --help
 │
 ├── src/eiopa_rfr/
+│   ├── main.py              # CLI `eiopa-rfr` (traitement mensuel, --export, --available, --health, --result-json)
+│   ├── app.py               # `eiopa-rfr-app` — lance le dashboard Streamlit (app.py racine)
 │   ├── config.py            # Tous les paramètres centralisés
 │   ├── paths.py             # Racine du dépôt / répertoire de données par utilisateur, sans effet de bord
 │   ├── downloader.py        # Téléchargement depuis le site EIOPA

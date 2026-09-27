@@ -7,7 +7,6 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, Optional
 
-import pandas as pd
 
 from eiopa_rfr.config import LOG_FORMAT, LOG_DATE_FORMAT, LOG_FILE, MIN_RATE, MAX_RATE
 
@@ -50,17 +49,6 @@ def validate_rate(rate: float) -> bool:
     """Vérifie qu'un taux est dans la plage acceptable."""
     return MIN_RATE <= rate <= MAX_RATE
 
-
-def safe_float_conversion(value) -> Optional[float]:
-    """Convertit une valeur en float de manière sécurisée."""
-    if pd.isna(value):
-        return None
-    try:
-        if isinstance(value, str):
-            value = value.replace(",", ".").replace(" ", "")
-        return float(value)
-    except (ValueError, TypeError):
-        return None
 
 
 def calculate_bps_change(old_rate: float, new_rate: float) -> float:

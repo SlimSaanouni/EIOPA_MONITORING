@@ -4,7 +4,7 @@ Configuration centralisée pour le système de monitoring EIOPA
 import os
 from datetime import datetime
 
-from eiopa_rfr.paths import BASE_DIR, DB_SCHEMA_FILE, HISTORICAL_DB  # réexportés, voir paths.py
+from eiopa_rfr.paths import BASE_DIR, DB_SCHEMA_FILE, HISTORICAL_DB  # noqa: F401 - réexportés, voir paths.py
 
 
 def _env_int(name: str, default: int) -> int:
