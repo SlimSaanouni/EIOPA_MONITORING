@@ -1,11 +1,9 @@
 """
 Ingestion unifiée EIOPA : ZIP -> SQLite, en un seul chemin d'extraction.
 
-Remplace processor.py + rfr_exporter.py (retirés à l'étape suivante) : chaque
-onglet base (RFR_spot_no_VA / RFR_spot_with_VA) est lu une seule fois, et sert
-à la fois à construire la courbe complète (0-150, Base/Up/Down) et les
-métadonnées scalaires (VA, LLP, Convergence, UFR, alpha, CRA, Coupon_freq),
-au lieu d'être relu séparément par les deux anciens modules.
+Chaque onglet base (RFR_spot_no_VA / RFR_spot_with_VA) est lu une seule fois,
+et sert à la fois à construire la courbe complète (0-150, Base/Up/Down) et les
+métadonnées scalaires (VA, LLP, Convergence, UFR, alpha, CRA, Coupon_freq).
 
 Formules EIOPA (onglet Shocks) :
     UP   = ROUND(base + MAX(0.01, shock_up   * ABS(base)), 5)

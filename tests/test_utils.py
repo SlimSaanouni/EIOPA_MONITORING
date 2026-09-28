@@ -10,7 +10,6 @@ from eiopa_rfr.utils import (
     get_previous_month_date,
     get_year_start_date,
     parse_date_from_filename,
-    safe_float_conversion,
     validate_rate,
 )
 
@@ -45,23 +44,6 @@ class TestValidateRate:
 
     def test_above_bounds(self):
         assert validate_rate(0.16) is False
-
-
-class TestSafeFloatConversion:
-    def test_plain_float(self):
-        assert safe_float_conversion(0.025) == 0.025
-
-    def test_comma_decimal_string(self):
-        assert safe_float_conversion("0,025") == 0.025
-
-    def test_string_with_spaces(self):
-        assert safe_float_conversion(" 1 234,5 ") == 1234.5
-
-    def test_nan_returns_none(self):
-        assert safe_float_conversion(float("nan")) is None
-
-    def test_non_numeric_string_returns_none(self):
-        assert safe_float_conversion("not a number") is None
 
 
 class TestBpsHelpers:

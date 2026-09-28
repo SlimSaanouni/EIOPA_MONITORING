@@ -8,7 +8,7 @@ import sys
 def _health_check() -> dict:
     """
     Health-check "cockpit-ready" : contrat partagé avec les 3 autres modules
-    orchestrés en subprocess (boîte noire) par alm_cockpit. Doit rester <1s
+    orchestrés en subprocess (boîte noire) par le Cockpit ALM. Doit rester <1s
     et n'écrire aucun fichier — volontairement limité au stdlib + eiopa_rfr,
     sans importer pandas/requests/bs4 (downloader/ingestion/analyzer), qui
     alourdiraient le budget de temps et déclencheraient setup_logging()
@@ -419,7 +419,7 @@ Exemples d'utilisation:
         '--health',
         action='store_true',
         help="Health-check rapide (<1s, aucune écriture) pour supervision externe "
-             "(ex. alm_cockpit) — affiche un JSON {status, module, version, detail} "
+             "(ex. Cockpit ALM) — affiche un JSON {status, module, version, detail} "
              "sur stdout et sort en code 0/1. Interceptée avant le parsing normal ; "
              "présente ici pour --help et par défense en profondeur."
     )

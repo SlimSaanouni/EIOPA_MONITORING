@@ -140,7 +140,8 @@ leans on:
   along with run/stage status dots).
 - **Weight**: bold for emphasis/success, regular otherwise.
 - **Border style**: dashed for informational, solid for neutral, thicker
-  for errors — see `.status-msg` in `tools/app_shell.html`.
+  for errors (`.status-msg` in the original treasury tool's app shell —
+  see Provenance below).
 - **Direct labels**: multi-series charts (e.g. a stacked area of several
   assets) rely on `--cat-1..4` lightness steps *plus* labels next to each
   segment — never color identity alone.
